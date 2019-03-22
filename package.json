@@ -1,0 +1,23 @@
+{
+  "name": "share-it-backend",
+  "version": "1.0.0",
+  "description": "backend for share it",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/3lVv0w/share-it-backend.git"
+  },
+  "author": "krseisenh@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/3lVv0w/share-it-backend/issues"
+  },
+  "homepage": "https://github.com/3lVv0w/share-it-backend#readme",
+  "dependencies": {
+    "dotenv": "^7.0.0",
+    "express": "^4.16.4"
+  }
+}
