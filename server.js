@@ -22,17 +22,8 @@ app.use(morgan("dev"));
 app.use(require("cors")());
 app.use(bodyParser.json(), bodyParser.urlencoded({ extended: true }));
 app.use("/", serveStatic(join(__dirname, "/dist")));
-// app.use("/api", router);
-// app.get("*", function(req, res) {
-//   res.sendFile(__dirname + "/dist/index.html");
-// });
-knex.schema.createTable('it_chula', function (table) {
-  table.increments();
-  table.string('it_chula_id').notnullable().primary();
-  table.string('password').notnullable();
-  table.string('name').notnullable();
-  table.timestamps();
-})
+
+
 app.post('/test', function(req, res, next) {
   console.log('hello');
   res.send(200);
