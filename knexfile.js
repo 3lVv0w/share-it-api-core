@@ -7,7 +7,7 @@ module.exports = {
       password: 'password',
       database: 'share_it'
     },
-    pool: { min: 0, max: 7 },
+    pool: { min: 0, max: 20 },
     migrations: {
       directory: './db/migrations'
     },
