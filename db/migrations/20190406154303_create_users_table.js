@@ -1,14 +1,18 @@
 
 exports.up = function(knex, Promise) {
-  knex.schema.createTable('it_chula', function (table) {
-      table.increments();
-      table.string('it_chula_id').notnullable().primary();
-      table.string('password').notnullable();
-      table.string('name').notnullable();
-      table.timestamps();
+  return knex.schema.createTable('users', function (table) {
+    table.increments('id')
+      .notNull()
+      .unsigned()
+      .primary();
+    table.string('it_chula_id').notNull()
+    table.string('password').notNull();
+    table.string('name').notNull();
+    table.dateTime('createdAt').notNull().defaultTo(knex.fn.now());
+    table.dateTime('updatedAt').notNull().defaultTo(knex.fn.now());
   });
 };
 
 exports.down = function(knex, Promise) {
-  knex.schema.dropTable('it_chula');
+  return knex.schema.dropTable('users');
 };

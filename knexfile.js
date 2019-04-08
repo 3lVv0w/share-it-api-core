@@ -1,14 +1,14 @@
 module.exports = {
   development: {
-    client: 'pg',
+    client: 'postgresql',
     connection:{
-      host:'localhost',
-      username:'MSI',
-      password: 'password',
-      database: 'share_it'
+      database: 'share-it',
+      user: 'postgres',
+      password: 'postgres',
     },
     pool: { min: 0, max: 7 },
     migrations: {
+      tabelName: 'knex_migrations',
       directory: './db/migrations'
     },
     seeds: {
@@ -18,7 +18,7 @@ module.exports = {
   },
 
   production: {
-    client: 'pg',
+    client: 'postgresql',
     connection: process.env.DATABASE_URL,
     migrations: {
       directory: './db/migrations'

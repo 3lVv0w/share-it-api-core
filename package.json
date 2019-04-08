@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "migration:make": "knex migrate:make",
+    "migration:latest": "knex migrate:latest",
+    "migration:rollback": "knex migrate:rollback"
   },
   "repository": {
     "type": "git",
@@ -21,6 +24,7 @@
   "dependencies": {
     "body-parser": "^1.18.3",
     "cors": "^2.8.4",
+    "dotenv": "^7.0.0",
     "eslint": "^5.5.0",
     "express": "^4.16.3",
     "knex": "^0.16.3",
