@@ -1,1 +1,1 @@
-# share-it-backend
+# share-it-api-core

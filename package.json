@@ -1,5 +1,5 @@
 {
-  "name": "share-it-backend",
+  "name": "share-it-api-core",
   "version": "1.0.0",
   "description": "backend for share it",
   "main": "server.js",
