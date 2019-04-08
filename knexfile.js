@@ -6,7 +6,7 @@ module.exports = {
       user: 'postgres',
       password: 'postgres',
     },
-    pool: { min: 0, max: 7 },
+    pool: { min: 0, max: 20 },
     migrations: {
       tabelName: 'knex_migrations',
       directory: './db/migrations'
