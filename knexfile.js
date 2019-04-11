@@ -2,9 +2,9 @@ module.exports = {
   development: {
     client: 'postgresql',
     connection:{
-      database: 'share-it',
+      database: 'share_it',
       user: 'postgres',
-      password: 'postgres',
+      password: 'password',
     },
     pool: { min: 0, max: 20 },
     migrations: {

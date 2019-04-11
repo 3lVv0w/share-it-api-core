@@ -2,11 +2,22 @@
 
 require('dotenv').config();
 const morgan = require("morgan");
-const app = require("express");
+const express = require("express");
+var pg = require('knex')({
+  client: 'pg',
+  connection: {
+    database: 'share_it',
+    user: 'postgres',
+    password: 'password',
+  },
+  searchPath: ['knex', 'public'],
+});
 //const router = require("./routes/api");
 const bodyParser = require("body-parser");
 const { join } = require("path");
 const serveStatic = require("serve-static");
+
+const app = express();
 
 app.set("json spaces", 2);
 app.use(morgan("dev"));
@@ -19,28 +30,24 @@ app.use(
 
 app.use("/", serveStatic(join(__dirname, "/dist")));
 
-app.post('/test', function(req, res, next) {
+app.post('/test', function (req, res, next) {
   console.log('hello');
-  const ids =''+req.query.id;
-  const passwords ='' +req.query.password
-  const names ='' +req.query.name;
-
-  console.log(knex);
-
-  knex.schema.then(function(err,result) {
-       knex.insert({it_chula_id : ids , password :passwords, name  : names}).into('it_chula');
-  })
-  res.send(200);
+  const ids = '' + req.query.id;
+  const passwords = '' + req.query.password
+  const names = '' + req.query.name;
+  pg.insert({ it_chula_id: ids, password: passwords, name: names }).into('it_chula')
+  res.send('Done');
 })
 
 app.post('/view', function (req, res, next) {
-  knex.schema.then(function (err, result) {
-    return knex.select().table('it_chula')
-  })
-  console.log(result);
-  res.send(result);
-})
+  pg.schema
+    .then((err, result) => pg.select().table('it_chula'))
+    .then(result => {
+      console.log(result);
+      res.send(result);
+    });
+});
 
 app.listen(process.env.PORT || 3000, () => {
-  console.log(`running on port: ${PORT}`);
+  console.log(`running on port: ${process.env.PORT}`);
 });
