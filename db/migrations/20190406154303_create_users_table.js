@@ -1,7 +1,7 @@
 
 exports.up = function(knex, Promise) {
   return knex.schema.createTable('it_chula', function (table) {
-    table.increments('id')
+    table.increments('cuid')
       .notNull()
       .unsigned()
       .primary()
@@ -10,6 +10,7 @@ exports.up = function(knex, Promise) {
     table.string('name').notNull();
     table.dateTime('createdAt').notNull().defaultTo(knex.fn.now());
     table.dateTime('updatedAt').notNull().defaultTo(knex.fn.now());
+   
   });
 };
 
