@@ -30,14 +30,17 @@ app.use(
 
 app.use("/", serveStatic(join(__dirname, "/dist")));
 
-app.post('/test', function (req, res, next) {
+app.post('/test', async function (req, res, next) {
   console.log('hello');
   const ids = '' + req.query.id;
-  const passwords = '' + req.query.password
+  const passwords = '' + req.query.password;
   const names = '' + req.query.name;
-  pg.insert({ it_chula_id: ids, password: passwords, name: names }).into('it_chula')
+  console.log({it_chula_id: ids, password: passwords, name: names})
+  await pg('it_chula').insert({it_chula_id: ids, password: passwords, name: names});
+  //pg.insert({ it_chula_id: ids, password: passwords, name: names }).into('it_chula')
   res.send('Done');
-})
+  
+});
 
 app.post('/view', function (req, res, next) {
   pg.schema

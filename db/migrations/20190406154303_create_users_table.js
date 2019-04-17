@@ -4,7 +4,7 @@ exports.up = function(knex, Promise) {
     table.increments('cuid')
       .notNull()
       .unsigned()
-      .primary()
+      .primary();
     table.string('it_chula_id').notNull();
     table.string('password').notNull();
     table.string('name').notNull();
