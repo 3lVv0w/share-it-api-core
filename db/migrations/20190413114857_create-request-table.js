@@ -5,13 +5,14 @@ exports.up = function(knex, Promise) {
         .notNull()
         .unsigned()
         .primary();
-      table.string('describe').notNull();
-      table.string('type').notNull();
-      table.string('token').notNull();
-      table.string('location').notNull();
-      table.integer('duration').notNull();
-      table.dateTime('timeout').notNull();
-      table.string('status').notNull(); 
+      table.string('note').notNull();
+      table.string('item_name').notNull();
+      table.string('item_type').notNull();
+      table.integer('token_used').notNull();
+      table.string('k_location').notNull();
+      table.dateTime('borrow_time').notNull();
+      table.dateTime('return_time').notNull();
+      table.string('l_status').notNull().defaultTo(false); 
       table.dateTime('createdAt').notNull().defaultTo(knex.fn.now());
       table.dateTime('updatedAt').notNull().defaultTo(knex.fn.now());
       //table.foreign('uid').references('users.uid');   

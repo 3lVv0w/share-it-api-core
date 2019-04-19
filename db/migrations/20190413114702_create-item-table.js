@@ -4,9 +4,9 @@ exports.up = function(knex, Promise) {
         .notNull()
         .unsigned()
         .primary();
-      table.string('name').notNull();
-      table.string('type').notNull();
-      table.string('qrcode').notNull();
+      table.string('item_name').notNull();
+      table.string('item_type').notNull();
+      table.string('item_qrcode').notNull();
       table.dateTime('createdAt').notNull().defaultTo(knex.fn.now());
       table.dateTime('updatedAt').notNull().defaultTo(knex.fn.now());
      // table.foreign('uid').references('users.uid');  
