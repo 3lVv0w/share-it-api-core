@@ -1,10 +1,8 @@
 
 exports.up = function(knex, Promise) {
   return knex.schema.createTable('temp_it_chula', function (table) {
-    table.increments('cuid')
-      .notNull()
-      .unsigned().primary()
-    table.string('it_chula').notNull();
+  
+    table.string('it_chula').notNull().primary()
     table.string('first_name').notNull();
     table.string('last_name').notNull();
     table.dateTime('createdAt').notNull().defaultTo(knex.fn.now());
@@ -14,5 +12,5 @@ exports.up = function(knex, Promise) {
 };
 
 exports.down = function(knex, Promise) {
-  return knex.schema.dropTable('it_chula');
+  return knex.schema.dropTable('temp_it_chula');
 };

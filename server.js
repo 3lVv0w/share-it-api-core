@@ -30,23 +30,24 @@ app.use(
 
 app.use("/", serveStatic(join(__dirname, "/dist")));
 
-app.post('/test', async function (req, res, next) {
-  console.log('hello');
+app.post('/insertRegChula', async function (req, res, next) {
+  console.log('inserting user');
   const ids = '' + req.query.id;
   const passwords = '' + req.query.password;
-  const names = '' + req.query.name;
+  const telnos = '' + req.query.telno;
   console.log({it_chula_id: ids, password: passwords, name: names})
   await pg('it_chula').insert({it_chula_id: ids, password: passwords, name: names});
   //pg.insert({ it_chula_id: ids, password: passwords, name: names }).into('it_chula')
   res.send('Done');
   
 });
+
 app.post('/login', async function(req,res,next) {
   console.log('attempting to login');
-  var usernameReq = req.query.id;
-  var passwordReq = req.query.password;
-pg('it_chula')
-  .where({ it_chula_id: usernameReq })
+  var usernameReq = req.query.id+'';
+  var passwordReq = req.query.password+'';
+pg('accounts')
+  .where({ it_chula: usernameReq })
   .select('password')
   .then(function(result) {
     if (!result || !result[0])  { 
@@ -72,9 +73,9 @@ pg('it_chula')
 });
 
 
-app.post('/view', function (req, res, next) {
+app.get('/view', function (req, res, next) {
   pg.schema
-    .then((err, result) => pg.select().table('it_chula'))
+    .then((err, result) => pg.select().table('accounts'))
     .then(result => {
       console.log(result);
       res.send(result);
