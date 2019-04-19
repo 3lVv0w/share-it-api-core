@@ -41,6 +41,36 @@ app.post('/test', async function (req, res, next) {
   res.send('Done');
   
 });
+app.post('/login', async function(req,res,next) {
+  console.log('attempting to login');
+  var usernameReq = req.query.id;
+  var passwordReq = req.query.password;
+pg('it_chula')
+  .where({ it_chula_id: usernameReq })
+  .select('password')
+  .then(function(result) {
+    if (!result || !result[0])  { 
+      console.log('id not found');
+      return;
+    }
+    var pass = result[0].password;
+     if (passwordReq === pass) {
+      console.log('login success');
+      res.send('login successs')
+
+    } else {
+      console.log('wrong password');
+      res.send('wrong password')
+  
+    }
+  })
+  .catch(function(error) {
+    console.log(error);
+  });
+ 
+
+});
+
 
 app.post('/view', function (req, res, next) {
   pg.schema
@@ -54,3 +84,4 @@ app.post('/view', function (req, res, next) {
 app.listen(process.env.PORT || 3000, () => {
   console.log(`running on port: ${process.env.PORT}`);
 });
+
