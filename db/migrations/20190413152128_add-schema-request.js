@@ -1,7 +1,7 @@
 exports.up = function(knex, Promise) {
     return knex.schema.table('request', function (table) {
      
-        table.integer('uid').notNull().unsigned().references('users.uid'); 
+        table.integer('aid').notNull().unsigned().references('accounts.aid'); 
 
      
     });
@@ -11,7 +11,7 @@ exports.up = function(knex, Promise) {
 exports.down = function(knex, Promise) {
     return knex.schema.table('request', function (table) {
  
-        table.dropColumn('uid').notNull().unsigned().references('users.uid');;
+        table.dropColumn('aid').notNull().unsigned().references('accounts.aid');;
 
         
     });

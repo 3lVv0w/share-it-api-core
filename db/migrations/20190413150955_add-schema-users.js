@@ -1,8 +1,8 @@
 
 exports.up = function(knex, Promise) {
-    return knex.schema.table('users', function (table) {
+    return knex.schema.table('accounts', function (table) {
 
-        table.integer('cuid').notNull().unsigned().references('it_chula.cuid'); 
+        table.integer('cuid').notNull().unsigned().references('temp_it_chula.cuid'); 
        
     });
     
@@ -10,7 +10,7 @@ exports.up = function(knex, Promise) {
 
 exports.down = function(knex, Promise) {
     return knex.schema.table('users', function (table) {
-        table.dropColumn('cuid').notNull().unsigned().references('it_chula.cuid');
+        table.dropColumn('cuid').notNull().unsigned().references('temp_it_chula.cuid');
  
     });
 };

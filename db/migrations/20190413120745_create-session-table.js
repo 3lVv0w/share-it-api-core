@@ -6,10 +6,10 @@ exports.up = function(knex, Promise) {
         .primary();
       table.dateTime('start_time').notNull();
       table.dateTime('end_time').notNull();
-      table.string('status').notNull();
+      table.string('s_status').notNull().defaultTo(false);
       table.dateTime('createdAt').notNull().defaultTo(knex.fn.now());
       table.dateTime('updatedAt').notNull().defaultTo(knex.fn.now());
-      //table.foreign('uid').references('users.uid'); 
+      //table.foreign('uid').references('account.aid'); 
       //table.foreign('rid').references('request.rid'); 
       //table.foreign('iid').references('items.iid'); 
      
