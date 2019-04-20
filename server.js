@@ -32,14 +32,12 @@ app.use("/", serveStatic(join(__dirname, "/dist")));
 
 app.post('/insertRegChula', async function (req, res, next) {
   console.log('inserting user');
-  const ids = '' + req.query.id;
-  const passwords = '' + req.query.password;
-  const telnos = '' + req.query.telno;
-  console.log({it_chula_id: ids, password: passwords, name: names})
-  await pg('it_chula').insert({it_chula_id: ids, password: passwords, name: names});
-  //pg.insert({ it_chula_id: ids, password: passwords, name: names }).into('it_chula')
-  res.send('Done');
-  
+  const rid = '' + req.query.id;
+  const rfirstname = '' + req.query.firstname;
+  const rlastname = '' + req.query.lastname;
+  console.log('entering id into temp_it_chula')
+  await pg('temp_it_chula').insert({it_chula: rid, first_name: rfirstname, last_name: rlastname});
+  res.send('Done'); 
 });
 
 app.post('/login', async function(req,res,next) {
@@ -56,7 +54,7 @@ pg('accounts')
     }
     var pass = result[0].password;
      if (passwordReq === pass) {
-      console.log('login success');
+      console.log(usernameReq+ ' login success');
       res.send('login successs')
 
     } else {
@@ -72,6 +70,38 @@ pg('accounts')
 
 });
 
+app.post('/signup',async function(req,res,next){
+  console.log('attempt to signup');
+  var rtel_no = req.query.tel_no+'';
+  var rpassword = req.query.password+'';
+  var rfirstname =req.query.firstname+'';
+  var rlastname = req.query.lastname+'';
+  var remail = req.query.email+'';
+  var rit_chula = req.query.it_chula+'';
+  var rqrcode = rit_chula+rfistname;
+  //var checked_it_chula;
+  pg('temp_it_chula')
+  .where({it_chula:rit_chula,first_name:rfirstname,last_name:rlastname})
+  .then(async function(result){
+    if(!result || !result[0]){
+      console.log('fake id')
+      res.send('entered wrong id')
+    }
+  else{
+   pg('accounts')
+   .where({it_chula:rit_chula}) 
+   .then(async function(result){
+    if (!result || !result[0])  { 
+     await pg('accounts').insert({tel_no:rtel_no,password:rpassword,first_name:rfirstname,last_name:rlastname,email:remail,qrcode:rqrcode,it_chula: rit_chula})
+     console.log('added info of ' + rit_chula + ' into accounts')
+    }
+    else
+    console.log('error already registered!')
+    res.send('sorry your account has been already registered ')
+});
+  }
+})
+});
 
 app.get('/view', function (req, res, next) {
   pg.schema
