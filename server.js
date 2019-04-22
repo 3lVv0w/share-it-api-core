@@ -78,34 +78,78 @@ app.post('/signup',async function(req,res,next){
   var rlastname = req.query.lastname+'';
   var remail = req.query.email+'';
   var rit_chula = req.query.it_chula+'';
-  var rqrcode = rit_chula+rfistname;
+  var rqrcode = rit_chula + rfirstname;
   //var checked_it_chula;
   pg('temp_it_chula')
   .where({it_chula:rit_chula,first_name:rfirstname,last_name:rlastname})
   .then(async function(result){
-    if(!result || !result[0]){
-      console.log('fake id')
+  if(!result || !result[0]){
+      console.log('entered wrong id')
       res.send('entered wrong id')
-    }
-  else{
-   pg('accounts')
+  } else{
+    pg('accounts')
    .where({it_chula:rit_chula}) 
    .then(async function(result){
     if (!result || !result[0])  { 
-     await pg('accounts').insert({tel_no:rtel_no,password:rpassword,first_name:rfirstname,last_name:rlastname,email:remail,qrcode:rqrcode,it_chula: rit_chula})
-     console.log('added info of ' + rit_chula + ' into accounts')
-    }
-    else
-    console.log('error already registered!')
-    res.send('sorry your account has been already registered ')
+       await pg('accounts').insert({tel_no:rtel_no,password:rpassword,first_name:rfirstname,last_name:rlastname,email:remail,qrcode:rqrcode,it_chula: rit_chula})
+       console.log('added info of ' + rit_chula + ' into accounts')
+    } else 
+    console.log('sorry your account has been already registered')
+    res.send('sorry your account has been already registered')
+    });
+  }
+  })
 });
+
+app.get('/iotchecknameid',function (req, res, next) {
+  var rqrcode = req.query.qrcode+'';
+  pg('accounts')
+  .where({qrcode : rqrcode})
+  .then(async function(result){
+  if(!result || !result[0]){
+      console.log('fake qr')
+      res.send('entered wrong qr')
+  } else{
+    pg('accounts')
+   .where({qrcode : rqrcode}).select('first_name','it_chula' ) 
+   .then(result =>{
+     console.log(result);
+     res.send(result);  })
   }
 })
+});  
+
+
+
+app.post('/inseritem', async function (req, res, next) {
+  console.log('inserting item');
+  const name = '' + req.query.name;
+  const type = '' + req.query.type;
+  const id = '' + req.query.id;
+  var qr = '';
+  pg.schema
+  .then((err, result) => pg('accounts').where({it_chula : id}).select('aid','qrcode'))
+  .then(async (result) => {
+    await pg('items').insert({item_name: name, item_type: type, item_qrcode: result[0].qrcode, belonged_aid: result[0].aid});
+    qr = result[0].qrcode;
+    console.log(qr+' is the qrcode');
+  })
+  pg.schema
+  .then((err, result) => pg('items').where({item_qrcode : qr}).select('iid'))
+  .then(async (result) => {
+    console.log(result)
+    await pg('items')
+    .where('qrcode = '+qr)
+    .update({
+      item_qrcode:qr+ result[0].iid
+    })
+  })
 });
+
 
 app.get('/view', function (req, res, next) {
   pg.schema
-    .then((err, result) => pg.select().table('accounts'))
+    .then((err, result) => pg.select().table('items'))
     .then(result => {
       console.log(result);
       res.send(result);
