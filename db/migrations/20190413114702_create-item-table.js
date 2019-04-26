@@ -9,6 +9,7 @@ exports.up = function(knex, Promise) {
       table.string('item_qrcode').notNull();
       table.dateTime('createdAt').notNull().defaultTo(knex.fn.now());
       table.dateTime('updatedAt').notNull().defaultTo(knex.fn.now());
+      table.string('image').notNull();
      // table.foreign('uid').references('users.uid');  
     });
   };

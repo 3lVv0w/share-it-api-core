@@ -119,6 +119,37 @@ app.get('/iotchecknameid',function (req, res, next) {
 })
 });  
 
+app.post('/borrowRequest',function(req,res,next){
+  console.log('listing item onto request catalogue')
+  var rnote = req.query.note+'';
+  var ritem_name = req.query.item_name+'';
+  var ritem_type = req.query.item_type+'';
+  var rtoken_used = req.query.token_used+'';
+  var rk_location = req.query.k_location+'';
+  var rborrow_time = req.query.borrow_time+'';
+  var rreturn_time = req.query.return_time +'';
+  var rid = req.query.it_chula+'';
+  //var rimage = req.query.image+''; add column
+  pg('accounts')
+  .where({it_chula:rid})
+  .then(async function(result){
+    await pg('request').insert({
+      note:rnote,
+      item_name:ritem_name,
+      item_type:ritem_type,
+      token_used:rtoken_used,
+      k_location:rk_location,
+      borrow_time:rborrow_time,
+      return_time:rreturn_time,
+      aid : pg('accounts').where({it_chula:rid}).select('aid'),
+      l_status: 'true'
+      //image : rimage; add column
+    })
+    res.send('added item into list');
+  })
+  //var image;
+  //var id;
+});
 
 
 app.post('/inseritem', async function (req, res, next) {
