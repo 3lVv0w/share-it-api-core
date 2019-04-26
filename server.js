@@ -3,16 +3,16 @@
 require('dotenv').config();
 const morgan = require("morgan");
 const express = require("express");
-const pg = require('knex');
-// var pg = require('knex')({
-//   client: 'pg',
-//   connection: {
-//     database: 'share_it',
-//     user: 'postgres',
-//     password: 'password',
-//   },
-//   searchPath: ['knex', 'public'],
-// });
+//const pg = require('knex');
+var pg = require('knex')({
+  client: 'pg',
+  connection: {
+    database: 'share_it',
+    user: 'postgres',
+    password: 'password',
+  },
+  searchPath: ['knex', 'public'],
+});
 //const router = require("./routes/api");
 const bodyParser = require("body-parser");
 const { join } = require("path");
@@ -66,9 +66,7 @@ pg('accounts')
   })
   .catch(function(error) {
     console.log(error);
-  });
- 
-
+  })
 });
 
 app.post('/signup',async function(req,res,next){
@@ -203,11 +201,11 @@ app.post('/checkAccept',async function(req,res,next){
 })
 
   
-app.post('/inseritem', async function (req, res, next) {
+app.post('/insertitem', async function (req, res, next) {
   console.log('inserting item');
-  const name = '' + req.query.name;
-  const type = '' + req.query.type;
-  const id = '' + req.query.id;
+  const name = '' + req.body.name;
+  const type = '' + req.body.type;
+  const id = '' + req.body.id;
   var qr = '';
   pg.schema
   .then((err, result) => pg('accounts').where({it_chula : id}).select('aid','qrcode'))
