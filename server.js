@@ -3,7 +3,11 @@
 require('dotenv').config();
 const morgan = require("morgan");
 const express = require("express");
-const pg = require('knex');
+const pg = require('knex')({
+  client: 'postgresql',
+  connection: process.env.DATABASE_URL,
+  useNullAsDefault: true
+});
 // var pg = require('knex')({
 //   client: 'pg',
 //   connection: {
