@@ -55,7 +55,7 @@ pg('accounts')
     var pass = result[0].password;
      if (passwordReq === pass) {
       console.log(usernameReq+ ' login success');
-      res.send('login successs')
+      res.send(pg('accounts').select(aid).where({it_chula:usernameReq}));
 
     } else {
       console.log('wrong password');
@@ -79,6 +79,7 @@ app.post('/signup',async function(req,res,next){
   var remail = req.query.email+'';
   var rit_chula = req.query.it_chula+'';
   var rqrcode = rit_chula + rfirstname;
+  var rimage = req.query.image+'';
   //var checked_it_chula;
   pg('temp_it_chula')
   .where({it_chula:rit_chula,first_name:rfirstname,last_name:rlastname})
@@ -91,7 +92,7 @@ app.post('/signup',async function(req,res,next){
    .where({it_chula:rit_chula}) 
    .then(async function(result){
     if (!result || !result[0])  { 
-       await pg('accounts').insert({tel_no:rtel_no,password:rpassword,first_name:rfirstname,last_name:rlastname,email:remail,qrcode:rqrcode,it_chula: rit_chula})
+       await pg('accounts').insert({tel_no:rtel_no,password:rpassword,first_name:rfirstname,last_name:rlastname,email:remail,qrcode:rqrcode,it_chula: rit_chula, image: rimage})
        console.log('added info of ' + rit_chula + ' into accounts')
     } else 
     console.log('sorry your account has been already registered')
@@ -139,8 +140,8 @@ app.post('/borrowRequest',function(req,res,next){
       item_type:ritem_type,
       token_used:rtoken_used,
       k_location:rk_location,
-      borrow_time:rborrow_time,
-      return_time:rreturn_time,
+      borrow_time:pg.fn.now(),
+      return_time:pg.fn.now(),
       aid : pg('accounts').where({it_chula:rid}).select('aid'),
       l_status: 'true'
       //image : rimage; add column
@@ -151,7 +152,56 @@ app.post('/borrowRequest',function(req,res,next){
   //var id;
 });
 
+//refresh session page
 
+app.post('/acceptRequest', async function(req,res,next){
+  var rrid = req.query.rid +'';
+  var raid = req.query.aid + '';
+await  pg('request')
+  .where({rid: rrid})
+  .update('l_status','true');
+await pg('accounts')
+  .where({aid:raid})
+  .update('in_session','true');
+await pg('accounts')
+  .where({aid : pg('request').select('aid').where({rid : rrid})})
+  .update('in_session','true');
+await pg('session')
+  .insert({start_time : pg.fn.now(), end_time : pg.fn.now(), aid :raid, rid: rrid, s_status : 'go to kiosk', iid : 0 })
+ await pg('accounts')
+  .where({aid : pg('request').select('aid').where({rid : rrid})})
+  .then(result =>{
+    console.log(result);
+    res.send(result);  })
+  //update status in request
+  //res.send() send borrower id
+})
+
+app.post('/checkAccept',async function(req,res,next){
+  var rrid = req.query.rid +'';
+  console.log('refresh');
+  await pg('request')
+  .where({rid:rrid,l_status:'true'})
+  .then(async function (result){
+    if(!result || !result[0]){
+      res.send('false');
+      console.log('false')
+    }
+    else{
+      console.log('true');
+      await pg('accounts').where({aid: pg('session').select('aid').where({rid: rrid})})
+      .then(result=>{
+        console.log(result);
+        res.send(result);
+      })
+    }
+  })
+
+      //check if status in request has been changed
+    //accept aid res if id in session send info of lender else send no session
+})
+
+  
 app.post('/inseritem', async function (req, res, next) {
   console.log('inserting item');
   const name = '' + req.query.name;
