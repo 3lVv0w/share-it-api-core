@@ -3,16 +3,16 @@
 require('dotenv').config();
 const morgan = require("morgan");
 const express = require("express");
-//const pg = require('knex');
-var pg = require('knex')({
-  client: 'pg',
-  connection: {
-    database: 'share_it',
-    user: 'postgres',
-    password: 'password',
-  },
-  searchPath: ['knex', 'public'],
-});
+const pg = require('knex');
+// var pg = require('knex')({
+//   client: 'pg',
+//   connection: {
+//     database: 'share_it',
+//     user: 'postgres',
+//     password: 'password',
+//   },
+//   searchPath: ['knex', 'public'],
+// });
 //const router = require("./routes/api");
 const bodyParser = require("body-parser");
 const { join } = require("path");
