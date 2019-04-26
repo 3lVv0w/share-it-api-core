@@ -237,6 +237,117 @@ app.get('/view', function (req, res, next) {
     });
 });
 
+
+app.post('/registeritem', async function (req, res, next) {
+  console.log('registering item');
+  const rid = req.body.belonged_acc_no;
+  const ritem_no = req.body.item_name;
+  const ritem_type = req.body.item_type;
+  console.log(rid);
+  console.log(ritem_no);
+  console.log(ritem_type);
+  
+  res.send('Done'); 
+});
+
+app.post('/feedback', async function (req, res, next) {
+  console.log('inserting user');
+  var c_rating = parseInt(req.query.rating);
+  const c_comment = '' + req.query.comment;
+  const c_t_it_chula = '' + req.query.t_it_chula;
+  const c_f_it_chula = '' + req.query.f_it_chula;
+  var c_taid =  pg('accounts').where({ it_chula: c_t_it_chula }).select('aid');
+  var c_faid =   pg('accounts').where({ it_chula: c_f_it_chula }).select('aid');
+  
+  console.log(c_taid);
+
+  console.log(c_faid);
+ 
+  
+  console.log('entering feedback into feedback table')
+  await pg('feedback').insert({rating: c_rating, comment: c_comment, taid: c_taid, faid: c_faid});
+
+  pg('accounts')
+   .where({aid:c_taid})
+   .select ('no_of_feedback','avg_rating')
+   .then(async function(result){
+      //console.log(result);
+      var fno = result[0].no_of_feedback;
+      var new_fno = fno +1;
+      var old_rating = result[0].avg_rating;
+      var new1 = ((old_rating*fno) + c_rating);
+      var new_rating = new1/new_fno;
+
+      // console.log('c_rating = ' + c_rating);
+      // console.log('old_rating = '+ old_rating);
+      // console.log('fno = ' +fno);
+      // console.log(old_rating +1);
+      // console.log(c_rating+1);
+      // console.log('new1 = ' + new1);
+      // console.log('new fno =' +new_fno);
+      await pg('accounts')
+      .where({ aid: c_taid })
+      .update({ no_of_feedback: new_fno })
+      //console.log('new no.of feedback =' + new_fno);
+      
+      await pg('accounts')
+      .where({ aid: c_taid })
+      .update({ avg_rating: new_rating })
+      console.log('new avg_rating = ' + new_rating);
+
+   });
+  
+  res.send('Done'); 
+  
+});
+
+
+app.post('/homepage', async function (req, res, next) {
+  
+  const ritem_type = req.query.item_type;
+ 
+  console.log('Querying from item type: '+ ritem_type)
+  pg.schema
+    .then((err, result) => pg.where({item_type:ritem_type}).select().table('request'))
+    .then(result => {
+      console.log(result);
+      res.send(result);
+    });
+});
+
+app.post('/login', async function(req,res,next) {
+  console.log('attempting to login');
+  //res.set('Content-Type','application/x-www-form-urlencoded' )
+  var usernameReq = req.body.id;
+  var passwordReq = req.body.password;
+  console.log(usernameReq);
+  console.log(passwordReq);
+pg('accounts')
+  .where({ it_chula: usernameReq })
+  .select('password')
+  .then(function(result) {
+    if (!result || !result[0])  { 
+      console.log('id not found');
+      return;
+    }
+    var pass = result[0].password;
+     if (passwordReq === pass) {
+      console.log(usernameReq+ ' login success');
+      res.send('ok')
+
+    } else {
+      console.log('wrong password');
+      res.send('wrong password')
+  
+    }
+  })
+  .catch(function(error) {
+    console.log(error);
+  });
+ 
+
+});
+
 app.listen(process.env.PORT || 3000, () => {
   console.log(`running on port: ${process.env.PORT}`);
 });
