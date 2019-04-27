@@ -3,20 +3,20 @@
 require('dotenv').config();
 const morgan = require("morgan");
 const express = require("express");
-const pg = require('knex')({
-  client: 'postgresql',
-  connection: process.env.DATABASE_URL,
-  useNullAsDefault: true
-});
-// var pg = require('knex')({
-//   client: 'pg',
-//   connection: {
-//     database: 'share_it',
-//     user: 'postgres',
-//     password: 'password',
-//   },
-//   searchPath: ['knex', 'public'],
+//const pg = require('knex')({
+//   client: 'postgresql',
+//   connection: process.env.DATABASE_URL,
+//   useNullAsDefault: true
 // });
+var pg = require('knex')({
+  client: 'pg',
+  connection: {
+    database: 'share_it',
+    user: 'postgres',
+    password: 'password',
+  },
+  searchPath: ['knex', 'public'],
+});
 //const router = require("./routes/api");
 const bodyParser = require("body-parser");
 const { join } = require("path");
@@ -109,7 +109,7 @@ app.get('/endsession', function(req,res,next){
   var sessionstatus = req.query.status +''
   var sessionid = req.query.sid+''
   if (sessionstatus ==='end')
-  await pg('session').where({sid:sessionid}).update('s_status','end')
+  pg('session').where({sid:sessionid}).update('s_status','end')
   
   pg.schema
   .then((err, result) => pg('session').join('requests','session.rid','request.rid').where({sid:sessionid})
@@ -120,8 +120,7 @@ app.get('/endsession', function(req,res,next){
     var t_updated = t - result[1]
     await pg('accounts')
     .where({aid:result[0]})
-    .update({token:t_updated
-      
+    .update({token:t_updatedyanr
     })
   })
 })
@@ -373,6 +372,20 @@ pg('accounts')
  
 
 });
+
+
+//view table on webconsole
+app.post('/webconsole',async function(req,res,next){
+  var tablename = req.body.tablename
+  //console.log(res)
+  console.log(tablename)
+  pg.schema
+    .then((err, result) => pg.select().table(tablename))
+    .then(result => {
+      console.log(result);
+      res.send(result);
+    });
+})
 
 app.listen(process.env.PORT || 3000, () => {
   console.log(`running on port: ${process.env.PORT}`);
