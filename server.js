@@ -105,7 +105,7 @@ app.post('/signup',async function(req,res,next){
   })
 });
 
-app.get('/endsession', function(req,res,next){
+app.get('/endsession', async function(req,res,next){
   var sessionstatus = req.query.status +''
   var sessionid = req.query.sid+''
   if (sessionstatus ==='end')
