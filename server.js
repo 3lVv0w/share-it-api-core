@@ -17,7 +17,7 @@ const pg = require('knex')({
 //   },
 //   searchPath: ['knex', 'public'],
 // });
-//const router = require("./routes/api");
+
 const bodyParser = require("body-parser");
 const { join } = require("path");
 const serveStatic = require("serve-static");
@@ -105,26 +105,26 @@ app.post('/signup',async function(req,res,next){
   })
 });
 
-app.get('/endsession', function(req,res,next){
-  var sessionstatus = req.query.status +''
-  var sessionid = req.query.sid+''
-  if (sessionstatus ==='end')
-  await pg('session').where({sid:sessionid}).update('s_status','end')
+// app.get('/endsession', function(req,res,next){
+//   var sessionstatus = req.query.status +''
+//   var sessionid = req.query.sid+''
+//   if (sessionstatus ==='end')
+//   await pg('session').where({sid:sessionid}).update('s_status','end')
   
-  pg.schema
-  .then((err, result) => pg('session').join('requests','session.rid','request.rid').where({sid:sessionid})
-    .select('request.aid','token_used'))
-  .then(async (result) => {
-    console.log(result)
-    var t =  pg('account').where('rid',result[0]).select('token');
-    var t_updated = t - result[1]
-    await pg('accounts')
-    .where({aid:result[0]})
-    .update({token:t_updated
+//   pg.schema
+//   .then((err, result) => pg('session').join('requests','session.rid','request.rid').where({sid:sessionid})
+//     .select('request.aid','token_used'))
+//   .then(async (result) => {
+//     console.log(result)
+//     var t =  pg('account').where('rid',result[0]).select('token');
+//     var t_updated = t - result[1]
+//     await pg('accounts')
+//     .where({aid:result[0]})
+//     .update({token:t_updated
       
-    })
-  })
-})
+//     })
+//   })
+// })
 
 app.get('/iotchecknameid',function (req, res, next) {
   var rqrcode = req.query.qrcode+'';
@@ -143,8 +143,6 @@ app.get('/iotchecknameid',function (req, res, next) {
   }
 })
 });  
-
-
 
 app.post('/borrowRequest',function(req,res,next){
   console.log('listing item onto request catalogue')
@@ -256,7 +254,7 @@ app.post('/insertitem', async function (req, res, next) {
 
 app.get('/view', function (req, res, next) {
   pg.schema
-    .then((err, result) => pg.select().table('items'))
+    .then((err, result) => pg.select().table('accounts'))
     .then(result => {
       console.log(result);
       res.send(result);
