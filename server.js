@@ -3,20 +3,20 @@
 require('dotenv').config();
 const morgan = require("morgan");
 const express = require("express");
-const pg = require('knex')({
-  client: 'postgresql',
-  connection: process.env.DATABASE_URL,
-  useNullAsDefault: true
-});
-// var pg = require('knex')({
-//   client: 'pg',
-//   connection: {
-//     database: 'share_it',
-//     user: 'postgres',
-//     password: 'password',
-//   },
-//   searchPath: ['knex', 'public'],
+// const pg = require('knex')({
+//   client: 'postgresql',
+//   connection: process.env.DATABASE_URL,
+//   useNullAsDefault: true
 // });
+var pg = require('knex')({
+  client: 'pg',
+  connection: {
+    database: 'share_it',
+    user: 'postgres',
+    password: 'password',
+  },
+  searchPath: ['knex', 'public'],
+});
 
 
 const bodyParser = require("body-parser");
@@ -46,16 +46,17 @@ app.post('/insertRegChula', async function (req, res, next) {
   res.send('Done'); 
 });
 
+//signup
 app.post('/signup',async function(req,res,next){
   console.log('attempt to signup');
-  var rtel_no = req.query.tel_no+'';
-  var rpassword = req.query.password+'';
-  var rfirstname =req.query.firstname+'';
-  var rlastname = req.query.lastname+'';
-  var remail = req.query.email+'';
-  var rit_chula = req.query.it_chula+'';
+  var rtel_no = req.body.tel_no+'';
+  var rpassword = req.body.password+'';
+  var rfirstname =req.body.firstname+'';
+  var rlastname = req.body.lastname+'';
+  var remail = req.body.email+'';
+  var rit_chula = req.body.it_chula+'';
   var rqrcode = rit_chula + rfirstname;
-  var rimage = req.query.image+'';
+  var rimage = '0';
   //var checked_it_chula;
   pg('temp_it_chula')
   .where({it_chula:rit_chula,first_name:rfirstname,last_name:rlastname})
@@ -77,11 +78,11 @@ app.post('/signup',async function(req,res,next){
   }
   })
 });
-
+//login receive id,password from front check and return
 app.post('/login', async function(req,res,next) {
   console.log('attempting to login');
-  var usernameReq = req.query.id+'';
-  var passwordReq = req.query.password+'';
+  var usernameReq = req.body.id+'';
+  var passwordReq = req.body.password+'';
 pg('accounts')
   .where({ it_chula: usernameReq })
   .select('password')
@@ -105,13 +106,35 @@ pg('accounts')
     console.log(error);
   })
 });
+//home category page when one of the category is chosen
+app.post('/homepage', async function (req, res, next) {
+  
+  const ritem_type = req.query.item_type;
+ 
+  console.log('Querying from item type: '+ ritem_type)
+  pg.schema
+    .then((err, result) => pg.where({item_type:ritem_type}).select().table('request'))
+    .then(result => {
+      console.log(result);
+      res.send(result);
+    });
+});
 
+//when a request is picked to view more info on the request (send account info of the borrower)
+app.post('/accinfoinrequest', async function (req, res, next) {
+  
+  const rqno = req.body.rid;
+ 
+  console.log('Sending info of request no.: '+ rqno);
+  pg.schema
+    .then((err, result) => pg('request').innerJoin('accounts','request.aid','accounts.aid'))
+    .then(result => {
+      console.log(result);
+      res.send(result);
+    });
+});
 
-
-
-
-
-
+//insert info on a new request
 
 app.post('/borrowRequest',function(req,res,next){
   console.log('listing item onto request catalogue')
@@ -122,10 +145,10 @@ app.post('/borrowRequest',function(req,res,next){
   var rk_location = req.query.k_location+'';
   var rborrow_time = req.query.borrow_time+'';
   var rreturn_time = req.query.return_time +'';
-  var rid = req.query.it_chula+'';
+  var aid = req.query.aid+'';
   //var rimage = req.query.image+''; add column
   pg('accounts')
-  .where({it_chula:rid})
+  .where({it_chula:aid})
   .then(async function(result){
     await pg('request').insert({
       note:rnote,
@@ -135,7 +158,7 @@ app.post('/borrowRequest',function(req,res,next){
       k_location:rk_location,
       borrow_time:pg.fn.now(),
       return_time:pg.fn.now(),
-      aid : pg('accounts').where({it_chula:rid}).select('aid'),
+      aid : pg('accounts').where({it_chula:aid}).select('aid'),
       //image : rimage; add column
     })
     res.send('added item into list');
@@ -144,11 +167,7 @@ app.post('/borrowRequest',function(req,res,next){
   //var id;
 });
 
-
-
-
-//refresh session page
-
+//lender accept request
 app.post('/acceptRequest', async function(req,res,next){
   var rrid = req.query.rid +'';
   var raid = req.query.aid + '';
@@ -179,7 +198,7 @@ else res.send('not enough token');
   //update status in request
   //res.send() send borrower id
 })
-
+//refresh session page (for borrower)
 app.post('/checkAccept',async function(req,res,next){
   var rrid = req.query.rid +'';
   console.log('refresh');
@@ -205,96 +224,7 @@ app.post('/checkAccept',async function(req,res,next){
     //accept aid res if id in session send info of lender else send no session
 })
 
-app.post('/iotchecknameid',function (req, res, next) {
-  var rqrcode = req.body.stringLenderQR+'';
-  console.log(rqrcode);
-  pg('accounts')
-  .where({qrcode : rqrcode})
-  .then(async function(result){
-  if(!result || !result[0]){
-      console.log('fake qr')
-      res.send('entered wrong qr')
-  } else{
-    pg('accounts')
-   .where({qrcode : rqrcode}).select('first_name','it_chula' ) 
-   .then(result =>{
-     console.log(result);
-     res.send(result);  })
-  }
-})
-}); 
-app.post('/sessionStart', async function (req,res,next){
-  var rsid = req.query.sid;
-  pg('session')
-  .where({sid:rsid})
-  .then(async function(result){
-    if(result[0].s_status=='sessionStart'){
-      console.log(result[0].s_status);
-      pg('session').where({sid:rsid})
-      .then(result=>{
-      res.send(result);
-      })
-    }
-    else{
-      console.log(result[0].s_status);
-      res.send('false');
-    }
-  })
-  //TBCC
-})
-
-app.post('/insertitem', async function (req, res, next) {
-  console.log('inserting item');
-  const name = '' + req.body.name;
-  const type = '' + req.body.type;
-  const id = '' + req.body.id;
-  var qr = '';
-  pg.schema
-  .then((err, result) => pg('accounts').where({it_chula : id}).select('aid','qrcode'))
-  .then(async (result) => {
-    await pg('items').insert({item_name: name, item_type: type, item_qrcode: result[0].qrcode, belonged_aid: result[0].aid});
-    qr = result[0].qrcode;
-    console.log(qr+' is the qrcode');
-  })
-  pg.schema
-  .then((err, result) => pg('items').where({item_qrcode : qr}).select('iid'))
-  .then(async (result) => {
-    console.log(result)
-    await pg('items')
-    .where('qrcode = '+qr)
-    .update({
-      item_qrcode:qr+ result[0].iid
-    })
-  })
-});
-
-app.post('/defaultItem',async function(req,res,next){
-await pg('items')
-.insert({iid:'0',item_name:'',item_type:'',item_qrcode:'',belonged_aid:'1'})
-}); 
-
-app.get('/view', function (req, res, next) {
-  pg.schema
-    .then((err, result) => pg.select().table('accounts'))
-    .then(result => {
-      console.log(result);
-      res.send(result);
-    });
-});
-
-
-app.post('/registeritem', async function (req, res, next) {
-  console.log('registering item');
-  const rid = req.body.belonged_acc_no;
-  const ritem_no = req.body.item_name;
-  const ritem_type = req.body.item_type;
-  console.log(rid);
-  console.log(ritem_no);
-  console.log(ritem_type);
-  
-  res.send('Done'); 
-});
-
+//session end
 app.get('/endsession', async function(req,res,next){
   var sessionstatus = req.query.status +''
   var sessionid = req.query.sid+''
@@ -315,6 +245,8 @@ app.get('/endsession', async function(req,res,next){
     })
   })
 });
+
+//feedback
 app.post('/feedback', async function (req, res, next) {
   console.log('inserting user');
   var c_rating = parseInt(req.query.rating);
@@ -367,18 +299,99 @@ app.post('/feedback', async function (req, res, next) {
 });
 
 
-app.post('/homepage', async function (req, res, next) {
-  
-  const ritem_type = req.query.item_type;
- 
-  console.log('Querying from item type: '+ ritem_type)
-  pg.schema
-    .then((err, result) => pg.where({item_type:ritem_type}).select().table('request'))
-    .then(result => {
-      console.log(result);
-      res.send(result);
-    });
+//=========>    KIOSK
+//session by charlie
+app.post('/iotchecklenderqr',function (req, res, next) {
+  var rqrcode= req.body.stringLenderQR;
+  console.log(rqrcode);
+
+  pg('accounts')
+  .where({qrcode : rqrcode})
+  .then(async function(result){
+  if(!result || !result[0]){
+      console.log('fake qr')
+      res.send('entered wrong qr')
+  } else{
+    pg('accounts')
+   .where({qrcode : rqrcode}).select('first_name','it_chula' ) 
+   .then(result =>{
+     console.log(result);
+     res.send(result);  })
+  }
+})
 });
+
+app.post('/sessionStart', async function (req,res,next){
+  var rsid = req.query.sid;
+  pg('session')
+  .where({sid:rsid})
+  .then(async function(result){
+    if(result[0].s_status=='sessionStart'){
+      console.log(result[0].s_status);
+      pg('session').where({sid:rsid})
+      .then(result=>{
+      res.send(result);
+      })
+    }
+    else{
+      console.log(result[0].s_status);
+      res.send('false');
+    }
+  })
+  //TBCC
+});
+app.post('/iotcheckborrowerqr',function (req, res, next) {
+  var rqrcode = req.body.stringBorrowerQR;
+  console.log(rqrcode);
+
+  pg('accounts')
+    .where({qrcode : rqrcode})
+    .then(async function(result){
+    if(!result || !result[0]){
+      console.log('fake qr')
+      res.send('entered wrong qr')
+    } else{
+      pg('accounts')
+    .where({qrcode : rqrcode}).select('first_name','it_chula' ) 
+    .then(result =>{
+     console.log(result);
+     res.send(result);  })
+    } 
+  })
+});  
+
+//session by charlie
+app.post('/insertitem', async function (req, res, next) {
+  console.log('inserting item');
+  const name = '' + req.body.item_name;
+  const type = '' + req.body.item_type;
+  const id = '' + req.body.belonged_acc_no;
+  var qr = '';
+  pg.schema
+  .then((err, result) => pg('accounts').where({it_chula : id}).select('aid','qrcode'))
+  .then(async (result) => {
+    await pg('items').insert({item_name: name, item_type: type, item_qrcode: result[0].qrcode, belonged_aid: result[0].aid});
+    qr = result[0].qrcode;
+    console.log(qr+' is the qrcode');
+  })
+  pg.schema
+  .then((err, result) => pg('items').where({item_qrcode : qr}).select('iid'))
+  .then(async (result) => {
+    console.log(result)
+    await pg('items')
+    .where('qrcode = '+qr)
+    .update({
+      item_qrcode:qr+ result[0].iid
+    })
+  })
+});
+
+
+
+
+
+
+
 
 
 
