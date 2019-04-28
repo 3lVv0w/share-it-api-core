@@ -183,7 +183,10 @@ app.post('/borrowRequest',function(req,res,next){
 app.post('/acceptRequest', async function(req,res,next){
   var rrid = req.query.rid +'';
   var raid = req.query.aid + '';
-await  pg('request')
+await pg('accounts').where({aid:raid})
+.then(async function (result){
+  if(result[0].token>0){
+  await  pg('request')
   .where({rid: rrid})
   .update('l_status','true');
 await pg('accounts')
@@ -197,12 +200,13 @@ await pg('session')
   pg(pg('request').select('rid','aid').as('t1'))
   .innerJoin(pg('session').select('sid','rid').as('t2'),'t1.rid','=','t2.rid')
   .innerJoin(pg('accounts').where({aid : pg('request').distinct('aid').where({rid : rrid})}).as('t3'),'t1.aid','=','t3.aid')
-// await pg.table('request').innerJoin('accounts','request.aid','=','accounts.aid')
-// .innerJoin('session','request.rid','=','session.rid').where({ridr:rrid,s_status:'go to kiosk'})
 .then(result =>{
     console.log(result);
     res.send(result)
  })
+}
+else res.send('not enough token');
+})
   //update status in request
   //res.send() send borrower id
 })
