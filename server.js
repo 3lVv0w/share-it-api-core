@@ -206,7 +206,7 @@ app.post('/checkAccept',async function(req,res,next){
 })
 
 app.get('/iotchecknameid',function (req, res, next) {
-  var rqrcode = req.body.stringLenderQR+'';
+  var rqrcode = req.query.qrcode+'';
   console.log(rqrcode);
   pg('accounts')
   .where({qrcode : rqrcode})
