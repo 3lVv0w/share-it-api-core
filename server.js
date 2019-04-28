@@ -45,34 +45,6 @@ app.post('/insertRegChula', async function (req, res, next) {
   res.send('Done'); 
 });
 
-app.post('/login', async function(req,res,next) {
-  console.log('attempting to login');
-  var usernameReq = req.query.id+'';
-  var passwordReq = req.query.password+'';
-pg('accounts')
-  .where({ it_chula: usernameReq })
-  .select('password')
-  .then(function(result) {
-    if (!result || !result[0])  { 
-      console.log('id not found');
-      return;
-    }
-    var pass = result[0].password;
-     if (passwordReq === pass) {
-      console.log(usernameReq+ ' login success');
-      res.send(pg('accounts').select(aid).where({it_chula:usernameReq}));
-
-    } else {
-      console.log('wrong password');
-      res.send('wrong password')
-  
-    }
-  })
-  .catch(function(error) {
-    console.log(error);
-  })
-});
-
 app.post('/signup',async function(req,res,next){
   console.log('attempt to signup');
   var rtel_no = req.query.tel_no+'';
@@ -105,46 +77,40 @@ app.post('/signup',async function(req,res,next){
   })
 });
 
+app.post('/login', async function(req,res,next) {
+  console.log('attempting to login');
+  var usernameReq = req.query.id+'';
+  var passwordReq = req.query.password+'';
+pg('accounts')
+  .where({ it_chula: usernameReq })
+  .select('password')
+  .then(function(result) {
+    if (!result || !result[0])  { 
+      console.log('id not found');
+      return;
+    }
+    var pass = result[0].password;
+     if (passwordReq === pass) {
+      console.log(usernameReq+ ' login success');
+      res.send(pg('accounts').select(aid).where({it_chula:usernameReq}));
 
-app.get('/endsession', async function(req,res,next){
-  var sessionstatus = req.query.status +''
-  var sessionid = req.query.sid+''
-  if (sessionstatus ==='end')
-  await pg('session').where({sid:sessionid}).update('s_status','end')
+    } else {
+      console.log('wrong password');
+      res.send('wrong password')
   
-  pg.schema
-  .then((err, result) => pg('session').join('requests','session.rid','request.rid').where({sid:sessionid})
-    .select('request.aid','token_used'))
-  .then(async (result) => {
-    console.log(result)
-    var t =  pg('account').where('rid',result[0]).select('token');
-    var t_updated = t - result[1]
-    await pg('accounts')
-    .where({aid:result[0]})
-    .update({token:t_updated
-      
-    })
+    }
+  })
+  .catch(function(error) {
+    console.log(error);
   })
 });
 
 
-app.get('/iotchecknameid',function (req, res, next) {
-  var rqrcode = req.query.qrcode+'';
-  pg('accounts')
-  .where({qrcode : rqrcode})
-  .then(async function(result){
-  if(!result || !result[0]){
-      console.log('fake qr')
-      res.send('entered wrong qr')
-  } else{
-    pg('accounts')
-   .where({qrcode : rqrcode}).select('first_name','it_chula' ) 
-   .then(result =>{
-     console.log(result);
-     res.send(result);  })
-  }
-})
-});  
+
+
+
+
+
 
 app.post('/borrowRequest',function(req,res,next){
   console.log('listing item onto request catalogue')
@@ -169,7 +135,6 @@ app.post('/borrowRequest',function(req,res,next){
       borrow_time:pg.fn.now(),
       return_time:pg.fn.now(),
       aid : pg('accounts').where({it_chula:rid}).select('aid'),
-      l_status: 'true'
       //image : rimage; add column
     })
     res.send('added item into list');
@@ -177,6 +142,9 @@ app.post('/borrowRequest',function(req,res,next){
   //var image;
   //var id;
 });
+
+
+
 
 //refresh session page
 
@@ -236,6 +204,23 @@ app.post('/checkAccept',async function(req,res,next){
     //accept aid res if id in session send info of lender else send no session
 })
 
+app.get('/iotchecknameid',function (req, res, next) {
+  var rqrcode = req.query.qrcode+'';
+  pg('accounts')
+  .where({qrcode : rqrcode})
+  .then(async function(result){
+  if(!result || !result[0]){
+      console.log('fake qr')
+      res.send('entered wrong qr')
+  } else{
+    pg('accounts')
+   .where({qrcode : rqrcode}).select('first_name','it_chula' ) 
+   .then(result =>{
+     console.log(result);
+     res.send(result);  })
+  }
+})
+}); 
 app.post('/sessionStart', async function (req,res,next){
   var rsid = req.query.sid;
   pg('session')
@@ -304,6 +289,26 @@ app.post('/registeritem', async function (req, res, next) {
   res.send('Done'); 
 });
 
+app.get('/endsession', async function(req,res,next){
+  var sessionstatus = req.query.status +''
+  var sessionid = req.query.sid+''
+  if (sessionstatus ==='end')
+  await pg('session').where({sid:sessionid}).update('s_status','end')
+  
+  pg.schema
+  .then((err, result) => pg('session').join('requests','session.rid','request.rid').where({sid:sessionid})
+    .select('request.aid','token_used'))
+  .then(async (result) => {
+    console.log(result)
+    var t =  pg('account').where('rid',result[0]).select('token');
+    var t_updated = t - result[1]
+    await pg('accounts')
+    .where({aid:result[0]})
+    .update({token:t_updated
+      
+    })
+  })
+});
 app.post('/feedback', async function (req, res, next) {
   console.log('inserting user');
   var c_rating = parseInt(req.query.rating);
@@ -369,38 +374,7 @@ app.post('/homepage', async function (req, res, next) {
     });
 });
 
-app.post('/login', async function(req,res,next) {
-  console.log('attempting to login');
-  //res.set('Content-Type','application/x-www-form-urlencoded' )
-  var usernameReq = req.body.id;
-  var passwordReq = req.body.password;
-  console.log(usernameReq);
-  console.log(passwordReq);
-pg('accounts')
-  .where({ it_chula: usernameReq })
-  .select('password')
-  .then(function(result) {
-    if (!result || !result[0])  { 
-      console.log('id not found');
-      return;
-    }
-    var pass = result[0].password;
-     if (passwordReq === pass) {
-      console.log(usernameReq+ ' login success');
-      res.send('ok')
 
-    } else {
-      console.log('wrong password');
-      res.send('wrong password')
-  
-    }
-  })
-  .catch(function(error) {
-    console.log(error);
-  });
- 
-
-});
 
 app.listen(process.env.PORT || 3000, () => {
   console.log(`running on port: ${process.env.PORT}`);
