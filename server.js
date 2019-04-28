@@ -369,6 +369,7 @@ app.post('/registeritem', async function (req, res, next) {
   const type = '' + req.body.item_type;
   const id = '' + req.body.belonged_acc_no;
   var qr = '';
+  var qrupdate='';
   pg.schema
   .then((err, result) => pg('accounts').where({it_chula : id}).select('aid','qrcode'))
   .then(async (result) => {
@@ -377,11 +378,12 @@ app.post('/registeritem', async function (req, res, next) {
     console.log(qr+' is the qrcode');
     
   })
+
   pg.schema
   .then((err, result) => pg('items').where({item_qrcode : qr}).select('iid'))
   .then(async (result) => {
     console.log(result);
-    res.send(qr+ result[0].iid );
+    qrupdate=qr+ result[0].iid; 
   })
   pg.schema
   .then((err, result) => pg('items').where({item_qrcode : qr}).select('iid'))
@@ -392,8 +394,16 @@ app.post('/registeritem', async function (req, res, next) {
     .update({
       item_qrcode:qr+ result[0].iid 
     })
+    res.send(qrupdate);
   })
- 
+});
+
+app.post('/deleteitem', async function (req, res, next) {
+  console.log('deleting item');
+  const id = '' + req.query.belonged_acc_no;
+  pg.schema
+  .then((err, result) => pg('items').where({iid : id}).del())
+  res.send('deleted '+id);
 });
 app.listen(process.env.PORT || 3000, () => {
   console.log(`running on port: ${process.env.PORT}`);
