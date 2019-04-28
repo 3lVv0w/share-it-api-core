@@ -378,15 +378,12 @@ app.post('/registeritem', async function (req, res, next) {
     console.log(qr+' is the qrcode');
     
   })
-
-  pg.schema
-  .then((err, result) => pg('items').where({item_qrcode : qr}).select('iid'))
+  pg('items').where({item_qrcode : qr}).select('iid')
   .then(async (result) => {
     console.log(result);
     qrupdate=qr+ result[0].iid; 
   })
-  pg.schema
-  .then((err, result) => pg('items').where({item_qrcode : qr}).select('iid'))
+  pg('items').where({item_qrcode : qr}).select('iid')
   .then(async (result) => {
     console.log(result)
     await pg('items')
