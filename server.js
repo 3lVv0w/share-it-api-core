@@ -269,8 +269,8 @@ app.post('/insertitem', async function (req, res, next) {
 
 app.post('/defaultItem',async function(req,res,next){
 await pg('items')
-.insert({iid:'0',item_name:'',item_type:'',item_qrcode:'',belonged_aid:'0'})
-})
+.insert({iid:'0',item_name:'',item_type:'',item_qrcode:'',belonged_aid:'1'})
+}); 
 
 app.get('/view', function (req, res, next) {
   pg.schema
