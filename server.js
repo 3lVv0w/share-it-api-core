@@ -17,7 +17,16 @@ var pg = require('knex')({
   },
   searchPath: ['knex', 'public'],
 });
-//const router = require("./routes/api");
+// var pg = require('knex')({
+//   client: 'pg',
+//   connection: {
+//     database: 'share_it',
+//     user: 'postgres',
+//     password: 'password',
+//   },
+//   searchPath: ['knex', 'public'],
+// });
+
 const bodyParser = require("body-parser");
 const { join } = require("path");
 const serveStatic = require("serve-static");
@@ -105,7 +114,8 @@ app.post('/signup',async function(req,res,next){
   })
 });
 
-app.get('/endsession', function(req,res,next){
+
+app.get('/endsession', async function(req,res,next){
   var sessionstatus = req.query.status +''
   var sessionid = req.query.sid+''
   if (sessionstatus ==='end')
@@ -123,7 +133,8 @@ app.get('/endsession', function(req,res,next){
     .update({token:t_updatedyanr
     })
   })
-})
+});
+
 
 app.get('/iotchecknameid',function (req, res, next) {
   var rqrcode = req.query.qrcode+'';
@@ -142,8 +153,6 @@ app.get('/iotchecknameid',function (req, res, next) {
   }
 })
 });  
-
-
 
 app.post('/borrowRequest',function(req,res,next){
   console.log('listing item onto request catalogue')
@@ -182,7 +191,10 @@ app.post('/borrowRequest',function(req,res,next){
 app.post('/acceptRequest', async function(req,res,next){
   var rrid = req.query.rid +'';
   var raid = req.query.aid + '';
-await  pg('request')
+await pg('accounts').where({aid:raid})
+.then(async function (result){
+  if(result[0].token>0){
+  await  pg('request')
   .where({rid: rrid})
   .update('l_status','true');
 await pg('accounts')
@@ -193,11 +205,16 @@ await pg('accounts')
   .update('in_session','true');
 await pg('session')
   .insert({start_time : pg.fn.now(), end_time : pg.fn.now(), aid :raid, rid: rrid, s_status : 'go to kiosk', iid : 0 })
- await pg('accounts')
-  .where({aid : pg('request').select('aid').where({rid : rrid})})
-  .then(result =>{
+  pg(pg('request').select('rid','aid').as('t1'))
+  .innerJoin(pg('session').select('sid','rid').as('t2'),'t1.rid','=','t2.rid')
+  .innerJoin(pg('accounts').where({aid : pg('request').distinct('aid').where({rid : rrid})}).as('t3'),'t1.aid','=','t3.aid')
+.then(result =>{
     console.log(result);
-    res.send(result);  })
+    res.send(result)
+ })
+}
+else res.send('not enough token');
+})
   //update status in request
   //res.send() send borrower id
 })
@@ -214,7 +231,8 @@ app.post('/checkAccept',async function(req,res,next){
     }
     else{
       console.log('true');
-      await pg('accounts').where({aid: pg('session').select('aid').where({rid: rrid})})
+      //await pg('accounts').where({aid: pg('session').distinct('aid').where({rid: rrid})})
+      await pg.table('accounts').innerJoin('session','accounts.aid','=','session.aid').where({s_status:'go to kiosk',rid:rrid})
       .then(result=>{
         console.log(result);
         res.send(result);
@@ -226,7 +244,26 @@ app.post('/checkAccept',async function(req,res,next){
     //accept aid res if id in session send info of lender else send no session
 })
 
-  
+app.post('/sessionStart', async function (req,res,next){
+  var rsid = req.query.sid;
+  pg('session')
+  .where({sid:rsid})
+  .then(async function(result){
+    if(result[0].s_status=='sessionStart'){
+      console.log(result[0].s_status);
+      pg('session').where({sid:rsid})
+      .then(result=>{
+      res.send(result);
+      })
+    }
+    else{
+      console.log(result[0].s_status);
+      res.send('false');
+    }
+  })
+  //TBCC
+})
+
 app.post('/insertitem', async function (req, res, next) {
   console.log('inserting item');
   const name = '' + req.body.name;
@@ -255,7 +292,7 @@ app.post('/insertitem', async function (req, res, next) {
 
 app.get('/view', function (req, res, next) {
   pg.schema
-    .then((err, result) => pg.select().table('items'))
+    .then((err, result) => pg.select().table('accounts'))
     .then(result => {
       console.log(result);
       res.send(result);
