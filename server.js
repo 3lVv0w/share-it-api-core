@@ -380,24 +380,21 @@ app.post('/registeritem', async function (req, res, next) {
   pg.schema
   .then((err, result) => pg('items').where({item_qrcode : qr}).select('iid'))
   .then(async (result) => {
+    console.log(result);
+    res.send(qr+ result[0].iid );
+  })
+  pg.schema
+  .then((err, result) => pg('items').where({item_qrcode : qr}).select('iid'))
+  .then(async (result) => {
     console.log(result)
     await pg('items')
     .where('qrcode = '+qr)
     .update({
-      item_qrcode:qr+ result[0].iid
+      item_qrcode:qr+ result[0].iid 
     })
   })
+ 
 });
-
-
-
-
-
-
-
-
-
-
 app.listen(process.env.PORT || 3000, () => {
   console.log(`running on port: ${process.env.PORT}`);
 });
