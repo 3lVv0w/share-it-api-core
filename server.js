@@ -226,28 +226,43 @@ app.post('/checkAccept',async function(req,res,next){
 })
 
 //session end
+//session end
 app.get('/endsession', async function(req,res,next){
   var sessionstatus = req.query.status +''
   var sessionid = req.query.sid+''
+
   if (sessionstatus ==='end')
   await pg('session').where({sid:sessionid}).update('s_status','end')
   
   pg.schema
-  .then((err, result) => pg('session').join('requests','session.rid','request.rid').where({sid:sessionid})
-    .select('request.aid','token_used'))
+  .then((err,result)=>
+  pg('request').select('rid','token_used').as('t2').innerJoin(pg('session').select('sid','ais','rid').where({sid:sessionid}).as('t2'),'t1.rid',
+  '=','t2.rid')
+  .select('token_used','aid'))
   .then(async (result) => {
     console.log(result)
-    var t =  pg('account').where('rid',result[0]).select('token');
-    var t_updated = t - result[1]
+    var t =  pg('account').where('aid',result[1]).select('token');
+    var t_updated = t + result[0]
     await pg('accounts')
-    .where({aid:result[0]})
+    .where({aid:result[1]})
     .update({token:t_updated
-      
     })
   })
-
-  
-});
+  pg.schema
+  .then((err,result)=>
+  pg('request').select('rid','aid','token_used').as('t2').innerJoin(pg('session').select('sid','rid').where({sid:sessionid}).as('t2'),'t1.rid',
+  '=','t2.rid')
+  .select('token_used','aid'))
+  .then(async (result) => {
+    console.log(result)
+    var t =  pg('account').where('aid',result[1]).select('token');
+    var t_updated = t - result[0]
+    await pg('accounts')
+    .where({aid:result[1]})
+    .update({token:t_updated
+    })
+  })
+})
 
 //feedback
 app.post('/feedback', async function (req, res, next) {
