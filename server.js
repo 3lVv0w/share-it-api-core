@@ -428,4 +428,3 @@ app.post('/deleteitem', async function (req, res, next) {
 app.listen(process.env.PORT || 3000, () => {
   console.log(`running on port: ${process.env.PORT}`);
 });
-
