@@ -105,7 +105,8 @@ app.post('/signup',async function(req,res,next){
   })
 });
 
-app.get('/endsession',async function(req,res,next){
+
+app.get('/endsession', async function(req,res,next){
   var sessionstatus = req.query.status +''
   var sessionid = req.query.sid+''
   if (sessionstatus ==='end')
@@ -124,7 +125,8 @@ app.get('/endsession',async function(req,res,next){
       
     })
   })
-})
+});
+
 
 app.get('/iotchecknameid',function (req, res, next) {
   var rqrcode = req.query.qrcode+'';
@@ -143,8 +145,6 @@ app.get('/iotchecknameid',function (req, res, next) {
   }
 })
 });  
-
-
 
 app.post('/borrowRequest',function(req,res,next){
   console.log('listing item onto request catalogue')
@@ -280,7 +280,7 @@ app.post('/insertitem', async function (req, res, next) {
 
 app.get('/view', function (req, res, next) {
   pg.schema
-    .then((err, result) => pg.select().table('items'))
+    .then((err, result) => pg.select().table('accounts'))
     .then(result => {
       console.log(result);
       res.send(result);
