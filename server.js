@@ -400,7 +400,7 @@ app.post('/registeritem', async function (req, res, next) {
 
 app.post('/deleteitem', async function (req, res, next) {
   console.log('deleting item');
-  const id = parseInt(req.query.belonged_acc_no);
+  const id = req.query.id;
   pg.schema
   .then((err, result) => pg('items').where({iid : id}).del())
   res.send('deleted '+id);
