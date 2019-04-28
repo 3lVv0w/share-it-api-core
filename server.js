@@ -71,6 +71,7 @@ app.post('/signup',async function(req,res,next){
     if (!result || !result[0])  { 
        await pg('accounts').insert({tel_no:rtel_no,password:rpassword,first_name:rfirstname,last_name:rlastname,email:remail,qrcode:rqrcode,it_chula: rit_chula, image: rimage})
        console.log('added info of ' + rit_chula + ' into accounts')
+       res.send('signed up')
     } else 
     console.log('sorry your account has been already registered')
     res.send('sorry your account has been already registered')
@@ -368,7 +369,7 @@ app.post('/registeritem', async function (req, res, next) {
   const name = '' + req.body.item_name;
   const type = '' + req.body.item_type;
   const id = '' + req.body.belonged_acc_no;
-  var qr = '';
+  var qr='';
   var qrupdate='';
   pg.schema
   .then((err, result) => pg('accounts').where({it_chula : id}).select('aid','qrcode'))
@@ -376,24 +377,31 @@ app.post('/registeritem', async function (req, res, next) {
     await pg('items').insert({item_name: name, item_type: type, item_qrcode: result[0].qrcode, belonged_aid: result[0].aid});
     qr = result[0].qrcode;
     console.log(qr+' is the qrcode');
-    
   })
-  pg('items').where({item_qrcode : qr}).select('iid')
+  .then((err, result) => pg('items').where({item_qrcode : qr}).select('iid'))
   .then(async (result) => {
-    console.log(result);
-    qrupdate=qr+ result[0].iid; 
+      qrupdate=qr+ JSON.stringify(result[0].iid); 
+      console.log(qrupdate);
+  
   })
-  pg('items').where({item_qrcode : qr}).select('iid')
+  .then((err, result) => pg('items').where({item_qrcode : qr}).select('iid'))
   .then(async (result) => {
-    console.log(result)
+    console.log(qr+'    '+qrupdate);
     await pg('items')
-    .where('qrcode = '+qr)
+    .where({item_qrcode :qr})
     .update({
-      item_qrcode:qr+ result[0].iid 
+      item_qrcode: qrupdate
     })
-    res.send(qrupdate);
+  .then((err, result) => pg('items').where({item_qrcode : qrupdate}).select('item_qrcode'))
+  .then(async (result) => {
+    console.log(JSON.stringify(result));
+    res.send(JSON.stringify(result));
   })
+})
 });
+
+
+
 
 app.post('/deleteitem', async function (req, res, next) {
   console.log('deleting item');
