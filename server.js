@@ -205,8 +205,8 @@ app.post('/checkAccept',async function(req,res,next){
     //accept aid res if id in session send info of lender else send no session
 })
 
-app.get('/iotchecknameid',function (req, res, next) {
-  var rqrcode = req.query.qrcode+'';
+app.post('/iotchecknameid',function (req, res, next) {
+  var rqrcode = req.body.stringLenderQR+'';
   console.log(rqrcode);
   pg('accounts')
   .where({qrcode : rqrcode})
