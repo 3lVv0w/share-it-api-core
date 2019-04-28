@@ -157,7 +157,7 @@ await pg('accounts').where({aid:raid})
   if(result[0].token>0){
   await  pg('request')
   .where({rid: rrid})
-  .update('l_status','true');
+  .update('l_status','true'); 
 await pg('accounts')
   .where({aid:raid})
   .update('in_session','true');
@@ -267,6 +267,10 @@ app.post('/insertitem', async function (req, res, next) {
   })
 });
 
+app.post('/defaultItem',async function(req,res,next){
+await pg('items')
+.insert({iid:'0',item_name:'',item_type:'',item_qrcode:'',belonged_aid:'0'})
+})
 
 app.get('/view', function (req, res, next) {
   pg.schema
