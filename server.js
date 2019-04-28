@@ -244,6 +244,8 @@ app.get('/endsession', async function(req,res,next){
       
     })
   })
+
+  
 });
 
 //feedback
@@ -361,7 +363,7 @@ app.post('/iotcheckborrowerqr',function (req, res, next) {
 });  
 
 //session by charlie
-app.post('/insertitem', async function (req, res, next) {
+app.post('/registeritem', async function (req, res, next) {
   console.log('inserting item');
   const name = '' + req.body.item_name;
   const type = '' + req.body.item_type;
@@ -373,6 +375,7 @@ app.post('/insertitem', async function (req, res, next) {
     await pg('items').insert({item_name: name, item_type: type, item_qrcode: result[0].qrcode, belonged_aid: result[0].aid});
     qr = result[0].qrcode;
     console.log(qr+' is the qrcode');
+    
   })
   pg.schema
   .then((err, result) => pg('items').where({item_qrcode : qr}).select('iid'))
