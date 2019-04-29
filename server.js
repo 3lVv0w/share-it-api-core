@@ -427,7 +427,7 @@ app.post('/registeritem', async function (req, res, next) {
   var qr='';
   var qrupdate='';
   pg('accounts')
-  .where({aid : id})
+  .where({it_chula : id})
   .then(async function(result){
   if(!result || !result[0]){
       //console.log('fake qr')
