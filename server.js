@@ -338,7 +338,7 @@ app.post('/iotchecklenderqr',function (req, res, next) {
         res.send({res: 'false'});
       }
       else{
-        pg('accounts').where({aid:rqrcode}).select('firstname')
+        pg('accounts').where({aid:rqrcode}).select('first_name')
         .then(result=>{
           res.send(result);
           })
@@ -363,7 +363,7 @@ app.post('/sessionStart', async function (req,res,next){
     }
     else{
       console.log(result[0].s_status);
-      res.send('false');
+      res.send({res:'false'});
     }
   })
   //TBCC
