@@ -327,20 +327,24 @@ app.post('/iotchecklenderqr',function (req, res, next) {
   .where({qrcode : rqrcode})
   .then(async function(result){
   if(!result || !result[0]){
-      //console.log('fake qr')
+      console.log('fake qr');
       res.send({res: 'false'})
   } else{
+    console.log('correct user');
     pg('accounts')
    .where({qrcode : rqrcode}).select('aid' ) 
    .then(result =>{
     pg('session').where({aid:result[0].aid}).then(async function(result){
       if(!result||!result[0]){
+        console.log('user not in sesion');
         res.send({res: 'false'});
       }
       else{
         pg('accounts').where({aid:rqrcode}).select('first_name')
         .then(result=>{
+          console.log('done');
           res.send(result);
+
           })
       }
     }) 
