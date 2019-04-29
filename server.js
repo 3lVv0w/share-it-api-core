@@ -3,20 +3,20 @@
 require('dotenv').config();
 const morgan = require("morgan");
 const express = require("express");
-const pg = require('knex')({
-  client: 'postgresql',
-  connection: process.env.DATABASE_URL,
-  useNullAsDefault: true
-});
-// var pg = require('knex')({
-//   client: 'pg',
-//   connection: {
-//     database: 'share_it',
-//     user: 'postgres',
-//     password: 'password',
-//   },
-//   searchPath: ['knex', 'public'],
+// const pg = require('knex')({
+//   client: 'postgresql',
+//   connection: process.env.DATABASE_URL,
+//   useNullAsDefault: true
 // });
+var pg = require('knex')({
+  client: 'pg',
+  connection: {
+    database: 'share_it',
+    user: 'postgres',
+    password: 'password',
+  },
+  searchPath: ['knex', 'public'],
+});
 
 
 const bodyParser = require("body-parser");
@@ -82,8 +82,8 @@ app.post('/signup',async function(req,res,next){
 //login receive id,password from front check and return
 app.post('/login', async function(req,res,next) {
   console.log('attempting to login');
-  var usernameReq = req.query.id+'';
-  var passwordReq = req.query.password+'';
+  var usernameReq = req.body.id+'';
+  var passwordReq = req.body.password+'';
 pg('accounts')
   .where({ it_chula: usernameReq })
   .select('password')
@@ -96,7 +96,7 @@ pg('accounts')
      if (passwordReq === pass) {
       console.log(usernameReq+ ' login success');
       pg.schema
-    .then((err, result) => pg('accounts').select('aid').where({it_chula:usernameReq}))
+    .then((err, result) => pg('accounts').where({it_chula:usernameReq}))
     .then(result => {
       console.log(result);
       res.send(result);
@@ -104,7 +104,7 @@ pg('accounts')
 
     } else {
       console.log('wrong password');
-      res.send('wrong password')
+      res.send('false')
   
     }
   })
