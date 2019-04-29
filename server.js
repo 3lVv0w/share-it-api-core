@@ -438,7 +438,7 @@ app.post('/iotcheckborrowerqr',function (req, res, next) {
       console.log(result[0].rid);
       console.log(result[0])
       console.log(JSON.stringify(result[0].rid) + ' result')
-      pg('session').where({rid : JSON.stringify(result[0].rid)})
+      pg('session').where({rid : result[0].rid})
       .then(async function(result){
         if(!result || !result[0]){
           console.log('user not in sesion');
