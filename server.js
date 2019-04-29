@@ -448,7 +448,7 @@ app.post('/iotcheckborrowerqr',function (req, res, next) {
         else {
           pg('session').where({rid: JSON.stringify(result[0].aid)})
           .update({s_status: 'sessionStart'})
-          pg('accounts').where({aid:rqrcode}).select('first_name')
+          pg('accounts').where({qrcode:rqrcode}).select('first_name')
           .then(result=>{
             console.log('user in sesion');
             res.send(JSON.stringify(result));
