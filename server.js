@@ -82,8 +82,8 @@ app.post('/signup',async function(req,res,next){
 //login receive id,password from front check and return
 app.post('/login', async function(req,res,next) {
   console.log('attempting to login');
-  var usernameReq = req.body.id+'';
-  var passwordReq = req.body.password+'';
+  var usernameReq = req.query.id+'';
+  var passwordReq = req.query.password+'';
 pg('accounts')
   .where({ it_chula: usernameReq })
   .select('password')
@@ -95,7 +95,12 @@ pg('accounts')
     var pass = result[0].password;
      if (passwordReq === pass) {
       console.log(usernameReq+ ' login success');
-      res.send(pg('accounts').select(aid).where({it_chula:usernameReq}));
+      pg.schema
+    .then((err, result) => pg('accounts').select('aid').where({it_chula:usernameReq}))
+    .then(result => {
+      console.log(result);
+      res.send(result);
+    });
 
     } else {
       console.log('wrong password');
