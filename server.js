@@ -430,14 +430,19 @@ app.post('/iotcheckborrowerqr',function (req, res, next) {
       pg('accounts').innerJoin('request','accounts.aid','=','request.aid')
       .select('rid').where({qrcode:rqrcode})
     .then(result =>{
+      if(!result || !result[0]){
+        res.send({res:'false'});
+      
+      }else{
       console.log('user check sesion');
       console.log(result[0].rid);
       console.log(result[0])
-      console.log(JSON.stringify(result[0].rid) + '          result')
+      console.log(JSON.stringify(result[0].rid) + ' result')
       pg('session').where({rid : JSON.stringify(result[0].rid)})
       .then(async function(result){
         if(!result || !result[0]){
           console.log('user not in sesion');
+          console.log(result[0]);
           res.send({res:'false'});
         }
         else {
@@ -451,7 +456,9 @@ app.post('/iotcheckborrowerqr',function (req, res, next) {
           
         }
       })    
-    })
+     } })
+
+  
     } 
   })
 });  
