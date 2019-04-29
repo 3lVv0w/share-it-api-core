@@ -71,6 +71,7 @@ app.post('/signup',async function(req,res,next){
     if (!result || !result[0])  { 
        await pg('accounts').insert({tel_no:rtel_no,password:rpassword,first_name:rfirstname,last_name:rlastname,email:remail,qrcode:rqrcode,it_chula: rit_chula, image: rimage})
        console.log('added info of ' + rit_chula + ' into accounts')
+       res.send('signed up')
     } else 
     console.log('sorry your account has been already registered')
     res.send('sorry your account has been already registered')
@@ -225,6 +226,7 @@ app.post('/checkAccept',async function(req,res,next){
 })
 
 //session end
+//session end
 app.get('/endsession', async function(req,res,next){
   var sessionstatus = req.query.status +''
   var sessionid = req.query.sid+''
@@ -325,14 +327,24 @@ app.post('/iotchecklenderqr',function (req, res, next) {
   .where({qrcode : rqrcode})
   .then(async function(result){
   if(!result || !result[0]){
-      console.log('fake qr')
-      res.send('entered wrong qr')
+      //console.log('fake qr')
+      res.send({res: 'false'})
   } else{
     pg('accounts')
-   .where({qrcode : rqrcode}).select('first_name','it_chula' ) 
+   .where({qrcode : rqrcode}).select('aid' ) 
    .then(result =>{
-     console.log(result);
-     res.send(result);  })
+    pg('session').where({aid:result[0].aid}).then(async function(result){
+      if(!result||!result[0]){
+        res.send({res: 'false'});
+      }
+      else{
+        pg('accounts').where({aid:rqrcode}).select('first_name')
+        .then(result=>{
+          res.send(result);
+          })
+      }
+    }) 
+    })
   }
 })
 });
@@ -351,7 +363,7 @@ app.post('/sessionStart', async function (req,res,next){
     }
     else{
       console.log(result[0].s_status);
-      res.send('false');
+      res.send({res:'false'});
     }
   })
   //TBCC
@@ -364,17 +376,47 @@ app.post('/iotcheckborrowerqr',function (req, res, next) {
     .where({qrcode : rqrcode})
     .then(async function(result){
     if(!result || !result[0]){
-      console.log('fake qr')
-      res.send('entered wrong qr')
+      res.send({res : 'false'})
     } else{
-      pg('accounts')
-    .where({qrcode : rqrcode}).select('first_name','it_chula' ) 
+      pg('accounts').where({qrcode : rqrcode}).as('t1')
+      .innerJoin('request','t1.aid','=','request.aid')
+      .select('rid')
     .then(result =>{
-     console.log(result);
-     res.send(result);  })
+      pg('session').where({rid : result[0].rid})
+      .then(async function(result){
+        if(!result || !result[0]){
+          res.send({res:'false'});
+        }
+        else {
+          pg('accounts').where({aid:rqrcode}).select('first_name')
+          .then(result=>{
+            res.send(result);
+            })
+          pg('session').where({rid: result[0].rid})
+          .update({s_status: 'sessionStart'})
+        }
+      })    
+    })
     } 
   })
 });  
+
+app.post('/iotcheckitemqr',function(req,res,next){
+  var riqrcode = req.body.stringBorrowerQR;
+  pg('items')
+  .where({item_qrcode:riqrcode})
+  .then(async function(result){
+    if(!result || !result[0]){
+      res.send({res: 'false'});
+    }
+    else{
+      pg('items').where({item_qrcode:riqrcode}).select('item_name')
+      .then(result=>{
+        res.send(result);
+        })
+    }
+  })
+})
 
 //session by charlie
 app.post('/registeritem', async function (req, res, next) {
@@ -382,32 +424,47 @@ app.post('/registeritem', async function (req, res, next) {
   const name = '' + req.body.item_name;
   const type = '' + req.body.item_type;
   const id = '' + req.body.belonged_acc_no;
-  var qr = '';
+  var qr='';
   var qrupdate='';
+  pg('accounts')
+  .where({it_chula : id})
+  .then(async function(result){
+  if(!result || !result[0]){
+      //console.log('fake qr')
+      res.send({res: 'false'})
+  }else{
   pg.schema
   .then((err, result) => pg('accounts').where({it_chula : id}).select('aid','qrcode'))
   .then(async (result) => {
     await pg('items').insert({item_name: name, item_type: type, item_qrcode: result[0].qrcode, belonged_aid: result[0].aid});
     qr = result[0].qrcode;
     console.log(qr+' is the qrcode');
-    
   })
-  pg('items').where({item_qrcode : qr}).select('iid')
+  .then((err, result) => pg('items').where({item_qrcode : qr}).select('iid'))
   .then(async (result) => {
-    console.log(result);
-    qrupdate=qr+ result[0].iid; 
+      qrupdate=qr+ JSON.stringify(result[0].iid); 
+      console.log(qrupdate);
+  
   })
-  pg('items').where({item_qrcode : qr}).select('iid')
+  .then((err, result) => pg('items').where({item_qrcode : qr}).select('iid'))
   .then(async (result) => {
-    console.log(result)
+    console.log(qr+'    '+qrupdate);
     await pg('items')
-    .where('qrcode = '+qr)
+    .where({item_qrcode :qr})
     .update({
-      item_qrcode:qr+ result[0].iid 
+      item_qrcode: qrupdate
     })
-    res.send(qrupdate);
+  .then((err, result) => pg('items').where({item_qrcode : qrupdate}).select('item_qrcode'))
+  .then(async (result) => {
+    console.log(JSON.stringify(result));
+    res.send(JSON.stringify(result));
   })
+})}
+})
 });
+
+
+
 
 app.post('/deleteitem', async function (req, res, next) {
   console.log('deleting item');
