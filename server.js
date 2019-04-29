@@ -438,11 +438,11 @@ app.post('/iotcheckborrowerqr',function (req, res, next) {
       console.log(result[0].rid);
       console.log(result[0])
       console.log(JSON.stringify(result[0].rid) + ' result')
-      pg('session').where({rid : result[0].rid})
+      pg('session').where({rid : JSON.stringify(result[0].rid)})
       .then(async function(result){
-        if(!result || !result[0]){
+        if(!result || !JSON.stringify(result[0])){
           console.log('user not in sesion');
-          console.log(result[0]);
+          console.log(JSON.stringify(result[0]));
           res.send({res:'false'});
         }
         else {
@@ -510,7 +510,13 @@ app.post('/registeritem', async function (req, res, next) {
 })
 });
 
-
+app.post('/deleterequest', async function (req, res, next) {
+  console.log('deleting req');
+  const id = req.query.id;
+  pg.schema
+  .then((err, result) => pg('request').where({rid : id}).del())
+  res.send('deleted '+id);
+});
 
 
 app.post('/deleteitem', async function (req, res, next) {
