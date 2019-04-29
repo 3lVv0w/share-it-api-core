@@ -345,6 +345,8 @@ app.post('/iotchecklenderqr',function (req, res, next) {
         res.send({res: 'false'});
       }
       else{
+        pg('session').where({rid: JSON.stringify(result[0].aid)})
+          .update({s_status: 'lendercheck'});
         pg('accounts').where({aid: JSON.stringify(result[0].aid)}).select('first_name')
         .then(result=>{
           console.log('done');
@@ -371,12 +373,33 @@ app.post('/sessionStart', async function (req,res,next){
       })
     }
     else{
+
       console.log(result[0].s_status);
       res.send({res:'false'});
     }
   })
   //TBCC
 });
+
+app.post('/iotcheckitemqr',function(req,res,next){
+  var riqrcode = req.body.stringItemQR;
+  pg('items')
+  .where({item_qrcode:riqrcode})
+  .then(async function(result){
+    if(!result || !result[0]){
+      res.send({res: 'false'});
+    }
+    else{
+      pg('session').where({rid: JSON.stringify(result[0].aid)})
+          .update({s_status: 'itemcheck'});
+      pg('items').where({item_qrcode:riqrcode}).select('item_name')
+      .then(result=>{
+        res.send(JSON.stringify(result));
+        })
+    }
+  })
+});
+
 app.post('/iotcheckborrowerqr',function (req, res, next) {
   var rqrcode = req.body.stringBorrowerQR;
   console.log(rqrcode);
@@ -388,21 +411,22 @@ app.post('/iotcheckborrowerqr',function (req, res, next) {
       res.send({res : 'false'})
     } else{
       pg('accounts').where({qrcode : rqrcode}).as('t1')
-      .innerJoin('request','t1.aid','=','request.aid')
+      .innerJoin('request','t1.aid','request.aid')
       .select('rid')
     .then(result =>{
-      pg('session').where({rid : result[0].rid})
+      pg('session').where({rid : JSON.stringify(result[0].rid)})
       .then(async function(result){
         if(!result || !result[0]){
           res.send({res:'false'});
         }
         else {
+          pg('session').where({rid: JSON.stringify(result[0].aid)})
+          .update({s_status: 'sessionStart'})
           pg('accounts').where({aid:rqrcode}).select('first_name')
           .then(result=>{
-            res.send(result);
+            res.send(JSON.stringify(result));
             })
-          pg('session').where({rid: result[0].rid})
-          .update({s_status: 'sessionStart'})
+          
         }
       })    
     })
@@ -410,22 +434,7 @@ app.post('/iotcheckborrowerqr',function (req, res, next) {
   })
 });  
 
-app.post('/iotcheckitemqr',function(req,res,next){
-  var riqrcode = req.body.stringItemQR;
-  pg('items')
-  .where({item_qrcode:riqrcode})
-  .then(async function(result){
-    if(!result || !result[0]){
-      res.send({res: 'false'});
-    }
-    else{
-      pg('items').where({item_qrcode:riqrcode}).select('item_name')
-      .then(result=>{
-        res.send(result);
-        })
-    }
-  })
-})
+
 
 //session by charlie
 app.post('/registeritem', async function (req, res, next) {
