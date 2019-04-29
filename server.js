@@ -327,14 +327,24 @@ app.post('/iotchecklenderqr',function (req, res, next) {
   .where({qrcode : rqrcode})
   .then(async function(result){
   if(!result || !result[0]){
-      console.log('fake qr')
-      res.send('entered wrong qr')
+      //console.log('fake qr')
+      res.send({res: 'false'})
   } else{
     pg('accounts')
-   .where({qrcode : rqrcode}).select('first_name','it_chula' ) 
+   .where({qrcode : rqrcode}).select('aid' ) 
    .then(result =>{
-     console.log(result);
-     res.send(result);  })
+    pg('session').where({aid:result[0].aid}).then(async function(result){
+      if(!result||!result[0]){
+        res.send({res: 'false'});
+      }
+      else{
+        pg('accounts').where({aid:rqrcode}).select('firstname')
+        .then(result=>{
+          res.send(result);
+          })
+      }
+    }) 
+    })
   }
 })
 });
@@ -366,17 +376,47 @@ app.post('/iotcheckborrowerqr',function (req, res, next) {
     .where({qrcode : rqrcode})
     .then(async function(result){
     if(!result || !result[0]){
-      console.log('fake qr')
-      res.send('entered wrong qr')
+      res.send({res : 'false'})
     } else{
-      pg('accounts')
-    .where({qrcode : rqrcode}).select('first_name','it_chula' ) 
+      pg('accounts').where({qrcode : rqrcode}).as('t1')
+      .innerJoin('request','t1.aid','=','request.aid')
+      .select('rid')
     .then(result =>{
-     console.log(result);
-     res.send(result);  })
+      pg('session').where({rid : result[0].rid})
+      .then(async function(result){
+        if(!result || !result[0]){
+          res.send({res:'false'});
+        }
+        else {
+          pg('accounts').where({aid:rqrcode}).select('first_name')
+          .then(result=>{
+            res.send(result);
+            })
+          pg('session').where({rid: result[0].rid})
+          .update({s_status: 'sessionStart'})
+        }
+      })    
+    })
     } 
   })
 });  
+
+app.post('/iotcheckitemqr',function(req,res,next){
+  var riqrcode = req.body.stringBorrowerQR;
+  pg('items')
+  .where({item_qrcode:riqrcode})
+  .then(async function(result){
+    if(!result || !result[0]){
+      res.send({res: 'false'});
+    }
+    else{
+      pg('items').where({item_qrcode:riqrcode}).select('item_name')
+      .then(result=>{
+        res.send(result);
+        })
+    }
+  })
+})
 
 //session by charlie
 app.post('/registeritem', async function (req, res, next) {
