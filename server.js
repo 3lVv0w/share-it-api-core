@@ -426,6 +426,13 @@ app.post('/registeritem', async function (req, res, next) {
   const id = '' + req.body.belonged_acc_no;
   var qr='';
   var qrupdate='';
+  pg('accounts')
+  .where({aid : id})
+  .then(async function(result){
+  if(!result || !result[0]){
+      //console.log('fake qr')
+      res.send({res: 'false'})
+  }else{
   pg.schema
   .then((err, result) => pg('accounts').where({it_chula : id}).select('aid','qrcode'))
   .then(async (result) => {
@@ -452,6 +459,7 @@ app.post('/registeritem', async function (req, res, next) {
     console.log(JSON.stringify(result));
     res.send(JSON.stringify(result));
   })
+})}
 })
 });
 
