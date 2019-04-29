@@ -348,7 +348,7 @@ app.post('/iotchecklenderqr',function (req, res, next) {
         pg('accounts').where({aid: JSON.stringify(result[0].aid)}).select('first_name')
         .then(result=>{
           console.log('done');
-          res.send(result);
+          res.send(JSON.stringify(result));
 
           })
       }
