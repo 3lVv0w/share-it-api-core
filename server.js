@@ -339,13 +339,13 @@ app.post('/iotchecklenderqr',function (req, res, next) {
     pg('accounts')
    .where({qrcode : rqrcode}).select('aid' ) 
    .then(result =>{
-    pg('session').where({aid:result[0].aid}).then(async function(result){
+    pg('session').where({aid: JSON.stringify(result[0].aid)}).then(async function(result){
       if(!result||!result[0]){
         console.log('user not in sesion');
         res.send({res: 'false'});
       }
       else{
-        pg('accounts').where({aid:rqrcode}).select('first_name')
+        pg('accounts').where({aid: JSON.stringify(result[0].aid)}).select('first_name')
         .then(result=>{
           console.log('done');
           res.send(result);
