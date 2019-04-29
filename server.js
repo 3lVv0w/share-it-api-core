@@ -407,7 +407,7 @@ app.post('/iotcheckborrowerqr',function (req, res, next) {
 });  
 
 app.post('/iotcheckitemqr',function(req,res,next){
-  var riqrcode = req.body.stringBorrowerQR;
+  var riqrcode = req.body.stringItemQR;
   pg('items')
   .where({item_qrcode:riqrcode})
   .then(async function(result){
