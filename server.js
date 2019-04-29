@@ -392,7 +392,7 @@ app.post('/iotcheckitemqr',function(req,res,next){
       res.send({res: 'false'});
     }
     else{
-      console.log('correct user');
+     
       pg('session').where({rid: JSON.stringify(result[0].aid)})
           .update({s_status: 'itemcheck'});
       pg('items').where({item_qrcode:riqrcode}).select('item_name')
@@ -412,14 +412,18 @@ app.post('/iotcheckborrowerqr',function (req, res, next) {
     .where({qrcode : rqrcode})
     .then(async function(result){
     if(!result || !result[0]){
+      console.log('fake qr');
       res.send({res : 'false'})
     } else{
+      console.log('correct user');
       pg('accounts').innerJoin('request','accounts.aid','=','request.aid')
       .select('rid').where({qrcode:rqrcode})
     .then(result =>{
+      console.log('user check sesion');
       pg('session').where({rid : JSON.stringify(result[0].rid)})
       .then(async function(result){
         if(!result || !result[0]){
+          console.log('user not in sesion');
           res.send({res:'false'});
         }
         else {
@@ -427,6 +431,7 @@ app.post('/iotcheckborrowerqr',function (req, res, next) {
           .update({s_status: 'sessionStart'})
           pg('accounts').where({aid:rqrcode}).select('first_name')
           .then(result=>{
+            console.log('user in sesion');
             res.send(JSON.stringify(result));
             })
           
