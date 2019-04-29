@@ -126,6 +126,17 @@ app.post('/homepage', async function (req, res, next) {
     });
 });
 
+//view profile
+app.post('/profile',async function (req,res,next){
+  const id = req.body.aid
+  pg.schema
+    .then((err, result) => pg(account).where({aid:id}).select())
+    .then(result => {
+      console.log(result);
+      res.send(result);
+    });
+})
+
 //when a request is picked to view more info on the request (send account info of the borrower)
 app.post('/accinfoinrequest', async function (req, res, next) {
   
