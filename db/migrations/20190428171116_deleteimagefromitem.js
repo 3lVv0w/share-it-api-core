@@ -9,9 +9,6 @@ exports.up = function(knex, Promise) {
 
 exports.down = function(knex, Promise) {
     return knex.schema.table('items', function (table) {
- 
-        table.dropColumn('image');
-
-        
+        table.dropColumn('image');    
     });
 }
