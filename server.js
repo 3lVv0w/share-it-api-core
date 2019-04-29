@@ -3,20 +3,20 @@
 require('dotenv').config();
 const morgan = require("morgan");
 const express = require("express");
-// const pg = require('knex')({
-//   client: 'postgresql',
-//   connection: process.env.DATABASE_URL,
-//   useNullAsDefault: true
-// });
-var pg = require('knex')({
-  client: 'pg',
-  connection: {
-    database: 'share_it',
-    user: 'postgres',
-    password: 'password',
-  },
-  searchPath: ['knex', 'public'],
+const pg = require('knex')({
+  client: 'postgresql',
+  connection: process.env.DATABASE_URL,
+  useNullAsDefault: true
 });
+// var pg = require('knex')({
+//   client: 'pg',
+//   connection: {
+//     database: 'share_it',
+//     user: 'postgres',
+//     password: 'password',
+//   },
+//   searchPath: ['knex', 'public'],
+// });
 
 
 const bodyParser = require("body-parser");
@@ -49,12 +49,12 @@ app.post('/insertRegChula', async function (req, res, next) {
 //signup
 app.post('/signup',async function(req,res,next){
   console.log('attempt to signup');
-  var rtel_no = req.query.tel_no+'';
-  var rpassword = req.query.password+'';
-  var rfirstname =req.query.firstname+'';
-  var rlastname = req.query.lastname+'';
-  var remail = req.query.email+'';
-  var rit_chula = req.query.it_chula+'';
+  var rtel_no = req.body.tel_no+'';
+  var rpassword = req.body.password+'';
+  var rfirstname =req.body.firstname+'';
+  var rlastname = req.body.lastname+'';
+  var remail = req.body.email+'';
+  var rit_chula = req.body.it_chula+'';
   var rqrcode = rit_chula + rfirstname;
   var rimage = '0';
   //var checked_it_chula;
@@ -419,4 +419,3 @@ app.post('/deleteitem', async function (req, res, next) {
 app.listen(process.env.PORT || 3000, () => {
   console.log(`running on port: ${process.env.PORT}`);
 });
-
