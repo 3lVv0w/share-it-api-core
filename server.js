@@ -410,9 +410,8 @@ app.post('/iotcheckborrowerqr',function (req, res, next) {
     if(!result || !result[0]){
       res.send({res : 'false'})
     } else{
-      pg('accounts').where({qrcode : rqrcode}).as('t1')
-      .innerJoin('request','t1.aid','request.aid')
-      .select('rid')
+      pg('accounts').innerJoin('request','accounts.aid','=','request.aid')
+      .select('rid').where({qrcode:rqrcode})
     .then(result =>{
       pg('session').where({rid : JSON.stringify(result[0].rid)})
       .then(async function(result){
