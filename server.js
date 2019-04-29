@@ -3,20 +3,20 @@
 require('dotenv').config();
 const morgan = require("morgan");
 const express = require("express");
-const pg = require('knex')({
-  client: 'postgresql',
-  connection: process.env.DATABASE_URL,
-  useNullAsDefault: true
-});
-// var pg = require('knex')({
-//   client: 'pg',
-//   connection: {
-//     database: 'share_it',
-//     user: 'postgres',
-//     password: 'password',
-//   },
-//   searchPath: ['knex', 'public'],
+// const pg = require('knex')({
+//   client: 'postgresql',
+//   connection: process.env.DATABASE_URL,
+//   useNullAsDefault: true
 // });
+var pg = require('knex')({
+  client: 'pg',
+  connection: {
+    database: 'share_it',
+    user: 'postgres',
+    password: 'password',
+  },
+  searchPath: ['knex', 'public'],
+});
 
 
 const bodyParser = require("body-parser");
@@ -95,11 +95,16 @@ pg('accounts')
     var pass = result[0].password;
      if (passwordReq === pass) {
       console.log(usernameReq+ ' login success');
-      res.send(pg('accounts').select(aid).where({it_chula:usernameReq}));
+      pg.schema
+    .then((err, result) => pg('accounts').where({it_chula:usernameReq}))
+    .then(result => {
+      console.log(result);
+      res.send(result);
+    });
 
     } else {
       console.log('wrong password');
-      res.send('wrong password')
+      res.send('false')
   
     }
   })
@@ -406,7 +411,7 @@ app.post('/iotcheckborrowerqr',function (req, res, next) {
 });  
 
 app.post('/iotcheckitemqr',function(req,res,next){
-  var riqrcode = req.body.stringBorrowerQR;
+  var riqrcode = req.body.stringItemQR;
   pg('items')
   .where({item_qrcode:riqrcode})
   .then(async function(result){
