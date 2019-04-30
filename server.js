@@ -246,7 +246,7 @@ app.post("/acceptRequest", async function(req, res, next) {
   var rrid = req.query.rid ;
   var raid = req.query.aid ;
   await pg("accounts")
-    .where({ aid: raid })
+    .where({ aid: raid }).select('aid')
     .then(async function(result) {
       if (result[0].token > 0) {
         await pg("request")
