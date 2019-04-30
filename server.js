@@ -3,20 +3,20 @@
 require('dotenv').config();
 const morgan = require("morgan");
 const express = require("express");
-const pg = require('knex')({
-  client: 'postgresql',
-  connection: process.env.DATABASE_URL,
-  useNullAsDefault: true
-});
-// var pg = require('knex')({
-//   client: 'pg',
-//   connection: {
-//     database: 'share_it',
-//     user: 'postgres',
-//     password: 'password',
-//   },
-//   searchPath: ['knex', 'public'],
+// const pg = require('knex')({
+//   client: 'postgresql',
+//   connection: process.env.DATABASE_URL,
+//   useNullAsDefault: true
 // });
+var pg = require('knex')({
+  client: 'pg',
+  connection: {
+    database: 'share_it',
+    user: 'postgres',
+    password: 'password',
+  },
+  searchPath: ['knex', 'public'],
+});
 
 
 const bodyParser = require("body-parser");
@@ -147,11 +147,11 @@ app.post('/profile',async function (req,res,next){
 //edit profile
 app.post('/editProfile', async function (req, res, next) {
   console.log('inserting user');
-  const rid = '' + req.query.id;
-  const rfirstname = '' + req.query.firstname;
-  const rlastname = '' + req.query.lastname;
-  const phoneno = req.query.tel_no
-  const email = req.query.email
+  const rid = '' + req.body.id;
+  const rfirstname = '' + req.body.firstname;
+  const rlastname = '' + req.body.lastname;
+  const phoneno = req.body.tel_no
+  const email = req.body.email
   await pg('accounts').update({first_name: rfirstname, last_name: rlastname,tel_no: phoneno,email:email});
   res.send('Done'); 
 });
@@ -183,7 +183,7 @@ app.post('/borrowRequest',function(req,res,next){
   var rreturn_time = req.body.return_time +'';
   var raid = req.body.aid+'';
   pg('request')
-  .where({aid: raid,l_status : false})
+  .where({aid: raid,l_status : 'false'})
   .then(async function(result){
   if(!result || !result[0]){
         //var rimage = req.query.image+''; add column
@@ -204,7 +204,8 @@ app.post('/borrowRequest',function(req,res,next){
     res.send('added item into list');
   })
   } else{
-    console.log('entered wrong id')
+    console.log(result);
+    console.log('request cant be created')
     res.send('entered wrong id or still in request')
   }
   //var image;
@@ -214,8 +215,10 @@ app.post('/borrowRequest',function(req,res,next){
 
 //lender accept request
 app.post('/acceptRequest', async function(req,res,next){
-  var rrid = req.query.rid +'';
-  var raid = req.query.aid + '';
+  var rrid = req.body.rid +'';
+  var raid = req.body.aid + '';
+  console.log(rrid);
+  console.log(raid);
 await pg('accounts').where({aid:raid})
 .then(async function (result){
   if(result[0].token>0){
@@ -317,12 +320,11 @@ app.get('/endsession', async function(req,res,next){
 //feedback
 app.post('/feedback', async function (req, res, next) {
   console.log('inserting user');
-  var c_rating = parseInt(req.query.rating);
-  const c_comment = '' + req.query.comment;
-  const c_t_it_chula = '' + req.query.t_it_chula;
-  const c_f_it_chula = '' + req.query.f_it_chula;
-  var c_taid =  pg('accounts').where({ it_chula: c_t_it_chula }).select('aid');
-  var c_faid =   pg('accounts').where({ it_chula: c_f_it_chula }).select('aid');
+  var c_rating = parseInt(req.body.rating);
+  const c_comment = '' + req.body.comment;
+  const c_taid = '' + req.body.t_aid;
+  const c_faid = '' + req.body.f_aid;
+ 
   
   console.log(c_taid);
 
@@ -336,20 +338,13 @@ app.post('/feedback', async function (req, res, next) {
    .where({aid:c_taid})
    .select ('no_of_feedback','avg_rating')
    .then(async function(result){
-      //console.log(result);
+      console.log(result);
       var fno = result[0].no_of_feedback;
       var new_fno = fno +1;
       var old_rating = result[0].avg_rating;
       var new1 = ((old_rating*fno) + c_rating);
       var new_rating = new1/new_fno;
 
-      // console.log('c_rating = ' + c_rating);
-      // console.log('old_rating = '+ old_rating);
-      // console.log('fno = ' +fno);
-      // console.log(old_rating +1);
-      // console.log(c_rating+1);
-      // console.log('new1 = ' + new1);
-      // console.log('new fno =' +new_fno);
       await pg('accounts')
       .where({ aid: c_taid })
       .update({ no_of_feedback: new_fno })
@@ -406,11 +401,11 @@ app.put('/iotchecklenderqr',function (req, res, next) {
 });
 
 app.post('/sessionStart', async function (req,res,next){
-  var rsid = req.query.sid;
+  var rsid = req.body.sid;
   pg('session')
   .where({sid:rsid})
   .then(async function(result){
-    if(result[0].s_status=='sessionStart'){
+    if(result[0].s_status=='sessionStart'){ // go to kiosk to session start duay***********************************
       console.log(result[0].s_status);
       pg('session').where({sid:rsid})
       .then(result=>{
@@ -420,7 +415,7 @@ app.post('/sessionStart', async function (req,res,next){
     else{
 
       console.log(result[0].s_status);
-      res.send({res:'false'});
+      res.send('false');
     }
   })
   //TBCC
