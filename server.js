@@ -533,7 +533,7 @@ app.put("/iotcheckitemqr", function(req, res, next) {
         pg.schema
         .then((err, result) =>
           pg("items")
-          .where({  qrcode: riqrcode })
+          .where({  item_qrcode: riqrcode })
           .select("belonged_aid","iid")
         )
         .then(async result => {
