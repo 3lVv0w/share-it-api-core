@@ -224,6 +224,7 @@ app.post("/borrowRequest", function(req, res, next) {
         pg("accounts")
           .where({ aid: raid })
           .then(async function(result) {
+            console.log(result);
             await pg("request").insert({
               note: rnote,
               item_name: ritem_name,
@@ -244,8 +245,6 @@ app.post("/borrowRequest", function(req, res, next) {
 
         res.send("entered wrong id or still in request");
       }
-      //var image;
-      //var id;
     });
 });
 
