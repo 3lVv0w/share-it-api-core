@@ -134,7 +134,7 @@ app.post("/homepage", async function(req, res, next) {
   pg.schema
     .then((err, result) =>
       pg
-        .where({ item_type: ritem_type })
+        .where({ item_type: ritem_type,l_status:false })
         .select()
         .table("request")
     )
@@ -166,11 +166,11 @@ app.post("/profile", async function(req, res, next) {
 //edit profile
 app.post("/editProfile", async function(req, res, next) {
   console.log("inserting user");
-  const rid = "" + req.query.id;
-  const rfirstname = "" + req.query.firstname;
-  const rlastname = "" + req.query.lastname;
-  const phoneno = req.query.tel_no;
-  const email = req.query.email;
+  const rid = "" + req.body.id;
+  const rfirstname = "" + req.body.firstname;
+  const rlastname = "" + req.body.lastname;
+  const phoneno = req.body.tel_no;
+  const email = req.body.email;
   await pg("accounts").update({
     first_name: rfirstname,
     last_name: rlastname,
@@ -240,8 +240,9 @@ app.post("/borrowRequest", function(req, res, next) {
 
 //lender accept request
 app.post("/acceptRequest", async function(req, res, next) {
-  var rrid = req.query.rid + "";
-  var raid = req.query.aid + "";
+  var rrid = req.body.rid + "";
+  var raid = req.body.aid + "";
+  
   await pg("accounts")
     .where({ aid: raid })
     .then(async function(result) {
@@ -792,11 +793,11 @@ app.post("/deleteitem", async function(req, res, next) {
 });
 
 app.post("/sessionStart", async function(req, res, next) {
-  var rsid = req.query.sid;
+  var rsid = req.body.sid;
   pg("session")
     .where({ sid: rsid })
     .then(async function(result) {
-      if (result[0].s_status == "sessionStart") {
+      if (result[0].s_status == "go to kiosk") {
         console.log(result[0].s_status);
         pg("session")
           .where({ sid: rsid })
@@ -805,7 +806,7 @@ app.post("/sessionStart", async function(req, res, next) {
           });
       } else {
         console.log(result[0].s_status);
-        res.send({ res: "false" });
+        res.send('false');
       }
     });
   //TBCC
