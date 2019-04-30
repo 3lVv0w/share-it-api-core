@@ -258,7 +258,7 @@ app.post("/acceptRequest", async function(req, res, next) {
     .where({ rid: rrid, l_status: true })
     .then(async function(result) {
       if (!result || !result[0]) {
-        res.send("not enough token");
+        res.send("false");
         console.log("false");
       } else {
         await pg("accounts")
@@ -315,7 +315,7 @@ app.post("/acceptRequest", async function(req, res, next) {
                   console.log(result);
                   res.send(result);
                 });
-            } else res.send("not enough token");
+            } else res.send("false");
           });
       }
       //update status in request
