@@ -245,22 +245,28 @@ else res.send('not enough token');
 })
 //refresh session page (for borrower)
 app.post('/checkAccept',async function(req,res,next){
-  var rrid = req.query.rid +'';
+  var raid = req.body.aid ;
+  console.log(raid);
   console.log('refresh');
   await pg('request')
-  .where({rid:rrid,l_status:'true'})
+  .where({aid:raid,l_status:'true'})
   .then(async function (result){
     if(!result || !result[0]){
       res.send('false');
-      console.log('false')
+      console.log('false');
     }
     else{
       console.log('true');
-      //await pg('accounts').where({aid: pg('session').distinct('aid').where({rid: rrid})})
-      await pg.table('accounts').innerJoin('session','accounts.aid','=','session.aid').where({s_status:'go to kiosk',rid:rrid})
+      var temp_rid =  pg('request').where({aid: raid,l_status:'true'}).select('rid');
+      console.log(temp_rid);
+      await pg.table('accounts').innerJoin('session','accounts.aid','=','session.aid').where({s_status:'go to kiosk',rid:temp_rid})
       .then(result=>{
+        if(!result || !result[0]){
+          res.send('false');
+          console.log('false');
+        }else{
         console.log(result);
-        res.send(result);
+        res.send(result);}
       })
     }
   })
