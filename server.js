@@ -341,7 +341,7 @@ app.post("/checkAccept", async function(req, res, next) {
           .where({ aid: raid, l_status: "true" })
           .select("rid")
           .then(async (result) =>{
-            console.log(temp_rid);
+           // console.log(temp_rid);
             await pg
               .table("accounts")
               .innerJoin("session", "accounts.aid", "=", "session.aid")
