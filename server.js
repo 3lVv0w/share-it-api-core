@@ -377,7 +377,7 @@ app.post('/iotchecklenderqr',function (req, res, next) {
     pg('accounts')
    .where({qrcode : rqrcode}).select('aid' ) 
    .then(result =>{
-    pg('session').where({aid: JSON.stringify(result[0].aid),s_status: false}).then(async function(result){
+    pg('session').where({aid: JSON.stringify(result[0].aid),s_status: 'go to kiosk'}).then(async function(result){
       if(!result||!result[0]){
         console.log('user not in sesion');
         res.send({res: 'false'});
