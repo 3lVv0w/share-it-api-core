@@ -889,7 +889,7 @@ app.post("/defualtitem", async function(req, res, next) {
     .where({ aid: raid })
     .then(async function(result) {
       if (!result || !result[0]) {
-        await pg("accounts").insert({
+        await pg("items").insert({
           iid: 0,
           item_name: 'defualt',
           item_type: 'defualt',
