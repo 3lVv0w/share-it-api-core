@@ -168,7 +168,7 @@ app.post("/profile", async function(req, res, next) {
 //edit profile
 app.post("/editProfile", async function(req, res, next) {
   console.log("inserting user");
-
+  const image = req.body.image;
   const rid = req.body.aid;
   const rfirstname = "" + req.body.firstname;
   const rlastname = "" + req.body.lastname;
@@ -177,6 +177,7 @@ app.post("/editProfile", async function(req, res, next) {
   await pg("accounts")
     .where({ aid: rid })
     .update({
+      image: image,
       first_name: rfirstname,
       last_name: rlastname,
       tel_no: phoneno,
@@ -213,7 +214,6 @@ app.post("/borrowRequest", function(req, res, next) {
   var rborrow_time = req.body.borrow_time + "";
   var rreturn_time = req.body.return_time + "";
   var raid = req.body.aid + "";
-
   var rimage = req.body.examplePicUrl + "";
 
   pg("request")
@@ -234,9 +234,7 @@ app.post("/borrowRequest", function(req, res, next) {
               return_time: pg.fn.now(),
 
               aid: raid,
-              image: rimage
-
-              //image : rimage; add column
+              image : rimage
             });
             res.send("added item into list");
           });
