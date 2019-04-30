@@ -95,13 +95,19 @@ pg('accounts')
     var pass = result[0].password;
      if (passwordReq === pass) {
       console.log(usernameReq+ ' login success');
-      var account_no = pg('accounts').select(aid).where({it_chula:usernameReq});
-      console.log('send to front = '+account_no);
-      res.send({user_acc_no:account_no});
+
+
+      pg.schema
+    .then((err, result) => pg('accounts').where({it_chula:usernameReq}))
+    .then(result => {
+      console.log(result);
+      res.send(result);
+    });
 
     } else {
       console.log('wrong password');
-      res.send({user_acc_no:'wrong password'});
+      res.send('false')
+
   
     }
   })
@@ -126,6 +132,17 @@ app.post('/homepage', async function (req, res, next) {
       }
     });
 });
+
+//view profile
+app.post('/profile',async function (req,res,next){
+  const id = req.body.aid
+  pg.schema
+    .then((err, result) => pg(account).where({aid:id}).select())
+    .then(result => {
+      console.log(result);
+      res.send(result);
+    });
+})
 
 //when a request is picked to view more info on the request (send account info of the borrower)
 app.post('/accinfoinrequest', async function (req, res, next) {
@@ -333,20 +350,26 @@ app.post('/iotchecklenderqr',function (req, res, next) {
   .where({qrcode : rqrcode})
   .then(async function(result){
   if(!result || !result[0]){
-      //console.log('fake qr')
+      console.log('fake qr');
       res.send({res: 'false'})
   } else{
+    console.log('correct user');
     pg('accounts')
    .where({qrcode : rqrcode}).select('aid' ) 
    .then(result =>{
-    pg('session').where({aid:result[0].aid}).then(async function(result){
+    pg('session').where({aid: JSON.stringify(result[0].aid)}).then(async function(result){
       if(!result||!result[0]){
+        console.log('user not in sesion');
         res.send({res: 'false'});
       }
       else{
-        pg('accounts').where({aid:rqrcode}).select('first_name')
+        pg('session').where({rid: JSON.stringify(result[0].aid)})
+          .update({s_status: 'lendercheck'});
+        pg('accounts').where({aid: JSON.stringify(result[0].aid)}).select('first_name')
         .then(result=>{
-          res.send(result);
+          console.log('done');
+          res.send(JSON.stringify(result));
+
           })
       }
     }) 
@@ -368,12 +391,37 @@ app.post('/sessionStart', async function (req,res,next){
       })
     }
     else{
+
       console.log(result[0].s_status);
       res.send({res:'false'});
     }
   })
   //TBCC
 });
+
+app.post('/iotcheckitemqr',function(req,res,next){
+  var riqrcode = req.body.stringItemQR;
+  pg('items')
+  .where({item_qrcode:riqrcode})
+  .then(async function(result){
+    if(!result || !result[0]){
+      console.log('fake qr');
+
+      res.send({res: 'false'});
+    }
+    else{
+     
+      pg('session').where({rid: JSON.stringify(result[0].aid)})
+          .update({s_status: 'itemcheck'});
+      pg('items').where({item_qrcode:riqrcode}).select('item_name')
+      .then(result=>{
+        console.log('user not in sesion');
+        res.send(JSON.stringify(result));
+        })
+    }
+  })
+});
+
 app.post('/iotcheckborrowerqr',function (req, res, next) {
   var rqrcode = req.body.stringBorrowerQR;
   console.log(rqrcode);
@@ -382,47 +430,47 @@ app.post('/iotcheckborrowerqr',function (req, res, next) {
     .where({qrcode : rqrcode})
     .then(async function(result){
     if(!result || !result[0]){
+      console.log('fake qr');
       res.send({res : 'false'})
     } else{
-      pg('accounts').where({qrcode : rqrcode}).as('t1')
-      .innerJoin('request','t1.aid','=','request.aid')
-      .select('rid')
+      console.log('correct user');
+      pg('accounts').innerJoin('request','accounts.aid','=','request.aid')
+      .select('rid').where({qrcode:rqrcode})
     .then(result =>{
-      pg('session').where({rid : result[0].rid})
+      if(!result || !result[0]){
+        res.send({res:'false'});
+      
+      }else{
+      console.log('user check sesion');
+      console.log(result[0].rid);
+      console.log(result[0])
+      console.log(JSON.stringify(result[0].rid) + ' result')
+      pg('session').where({rid : JSON.stringify(result[0].rid)})
       .then(async function(result){
-        if(!result || !result[0]){
+        if(!result || !JSON.stringify(result[0])){
+          console.log('user not in sesion');
+          console.log(JSON.stringify(result[0]));
           res.send({res:'false'});
         }
         else {
-          pg('accounts').where({aid:rqrcode}).select('first_name')
-          .then(result=>{
-            res.send(result);
-            })
-          pg('session').where({rid: result[0].rid})
+          pg('session').where({rid: JSON.stringify(result[0].aid)})
           .update({s_status: 'sessionStart'})
+          pg('accounts').where({qrcode:rqrcode}).select('first_name')
+          .then(result=>{
+            console.log('user in sesion');
+            res.send(JSON.stringify(result));
+            })
+          
         }
       })    
-    })
+     } })
+
+  
     } 
   })
 });  
 
-app.post('/iotcheckitemqr',function(req,res,next){
-  var riqrcode = req.body.stringBorrowerQR;
-  pg('items')
-  .where({item_qrcode:riqrcode})
-  .then(async function(result){
-    if(!result || !result[0]){
-      res.send({res: 'false'});
-    }
-    else{
-      pg('items').where({item_qrcode:riqrcode}).select('item_name')
-      .then(result=>{
-        res.send(result);
-        })
-    }
-  })
-})
+
 
 //session by charlie
 app.post('/registeritem', async function (req, res, next) {
@@ -433,7 +481,7 @@ app.post('/registeritem', async function (req, res, next) {
   var qr='';
   var qrupdate='';
   pg('accounts')
-  .where({aid : id})
+  .where({it_chula : id})
   .then(async function(result){
   if(!result || !result[0]){
       //console.log('fake qr')
@@ -469,7 +517,13 @@ app.post('/registeritem', async function (req, res, next) {
 })
 });
 
-
+app.post('/deleterequest', async function (req, res, next) {
+  console.log('deleting req');
+  const id = req.query.id;
+  pg.schema
+  .then((err, result) => pg('request').where({rid : id}).del())
+  res.send('deleted '+id);
+});
 
 
 app.post('/deleteitem', async function (req, res, next) {
