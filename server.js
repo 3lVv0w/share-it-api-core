@@ -265,9 +265,9 @@ app.post("/acceptRequest", async function(req, res, next) {
           .where({ aid: raid })
           .then(async function(result) {
             if (result[0].token > 0) {
-              // await pg("request")
-              //   .where({ rid: rrid })
-              //   .update("l_status", "true");
+              await pg("request")
+                .where({ rid: rrid })
+                .update("l_status", "true");
               await pg("accounts")
                 .where({ aid: raid })
                 .update("in_session", "true");
@@ -331,14 +331,14 @@ app.post("/checkAccept", async function(req, res, next) {
   await pg("request")
     .where({ aid: raid, l_status: "true" })
     .then(async function(result) {
-      if (!(!result || !result[0])) {
+      if (!result || !result[0]) {
         res.send("false");
         console.log("false");
       } else {
         console.log("true");
-        await pg("request")
-        .where({ aid: raid })
-        .update("l_status", "true");
+        // await pg("request")
+        // .where({ aid: raid })
+        // .update("l_status", "true");
         var temp_rid = pg("request")
           .where({ aid: raid, l_status: "true" })
           .select("rid");
@@ -383,6 +383,10 @@ app.post("/endsession", async function(req, res, next) {
           await pg("session")
             .where({ sid: sessionid })
             .update({ s_status: "end" });
+
+            await pg('request')
+            .where({rid:pg('session').select('rid').where({sid:sessionid})[0].rid})
+            .update({l_status: "end"});
         }
 
         // query old token
