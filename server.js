@@ -783,6 +783,44 @@ app.get('/view', function (req, res, next) {
       res.send(result);
     });
 });
+
+app.post("/defualtaccount", async function(req, res, next) {
+  var id = req.query.id;
+  pg("accounts")
+  .where({ it_chula: rit_chula })
+  .then(async function(result) {
+    if (!result || !result[0]) {
+      await pg("accounts").insert({
+        aid:0,
+        tel_no: '0',
+        password: 'password',
+        first_name: 'defualt',
+        last_name: 'defualt',
+        email: 'defualt',
+        qrcode: 'defualt',
+        it_chula: '0'
+      });
+    }
+  })
+});
+
+app.post("/defualtitem", async function(req, res, next) {
+  var raid = req.query.aid;
+  pg("accounts")
+  .where({ aid: raid })
+  .then(async function(result) {
+    if (!result || !result[0]) {
+      await pg("accounts").insert({
+              iid:0,
+              item_name: name,
+              item_type: type,
+              item_qrcode: result[0].qrcode,
+              belonged_aid: aid
+      });
+    }
+  })
+});
+
 app.listen(process.env.PORT || 3000, () => {
   console.log(`running on port: ${process.env.PORT}`);
 });
