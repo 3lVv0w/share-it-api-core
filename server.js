@@ -734,6 +734,17 @@ app.post("/deleterequest", async function(req, res, next) {
   res.send("deleted " + id);
 });
 
+app.post("/deletesession", async function(req, res, next) {
+  console.log("deleting ses");
+  const id = req.query.id;
+  pg.schema.then((err, result) =>
+    pg("session")
+      .where({ sid: id })
+      .del()
+  );
+  res.send("deleted " + id);
+});
+
 app.post("/deleteitem", async function(req, res, next) {
   console.log("deleting item");
   const id = req.query.id;
