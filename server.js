@@ -337,7 +337,7 @@ app.post("/checkAccept", async function(req, res, next) {
       } else {
         console.log("true");
         await pg("request")
-        .where({ rid: rrid })
+        .where({ aid: raid })
         .update("l_status", "true");
         var temp_rid = pg("request")
           .where({ aid: raid, l_status: "true" })
