@@ -265,9 +265,9 @@ app.post("/acceptRequest", async function(req, res, next) {
           .where({ aid: raid })
           .then(async function(result) {
             if (result[0].token > 0) {
-              await pg("request")
-                .where({ rid: rrid })
-                .update("l_status", "true");
+              // await pg("request")
+              //   .where({ rid: rrid })
+              //   .update("l_status", "true");
               await pg("accounts")
                 .where({ aid: raid })
                 .update("in_session", "true");
@@ -336,6 +336,9 @@ app.post("/checkAccept", async function(req, res, next) {
         console.log("false");
       } else {
         console.log("true");
+        await pg("request")
+        .where({ rid: rrid })
+        .update("l_status", "true");
         var temp_rid = pg("request")
           .where({ aid: raid, l_status: "true" })
           .select("rid");
@@ -343,7 +346,7 @@ app.post("/checkAccept", async function(req, res, next) {
         await pg
           .table("accounts")
           .innerJoin("session", "accounts.aid", "=", "session.aid")
-          .where({ s_status: "go to kiosk", rid: temp_rid })
+          .where({ s_status: "go to kiosk", rid: temp_rid[0].rid })
           .then(result => {
             if (!result || !result[0]) {
               res.send("false");
