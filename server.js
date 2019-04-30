@@ -836,7 +836,7 @@ app.post("/sessionStart", async function(req, res, next) {
   pg("session")
     .where({ sid: rsid })
     .then(async function(result) {
-      if (result[0].s_status == "go to kiosk") {
+      if (result[0].s_status == "sessionStart") {
         console.log(result[0].s_status);
         pg("session")
           .where({ sid: rsid })
