@@ -4,22 +4,22 @@ require("dotenv").config();
 const morgan = require("morgan");
 const express = require("express");
 
-// const pg = require("knex")({
-//   client: "postgresql",
-//   connection: process.env.DATABASE_URL,
-//   useNullAsDefault: true
-// });
-var pg = require('knex')({
-  client: 'pg',
-  connection: {
-    database: 'share_it',
-    user: 'postgres',
-    password: 'password',
-  },
-  searchPath: ['knex', 'public'],
-
-
+const pg = require("knex")({
+  client: "postgresql",
+  connection: process.env.DATABASE_URL,
+  useNullAsDefault: true
 });
+// var pg = require('knex')({
+//   client: 'pg',
+//   connection: {
+//     database: 'share_it',
+//     user: 'postgres',
+//     password: 'password',
+//   },
+//   searchPath: ['knex', 'public'],
+
+
+// });
 
 const bodyParser = require("body-parser");
 const { join } = require("path");
