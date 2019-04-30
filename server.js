@@ -166,16 +166,20 @@ app.post("/profile", async function(req, res, next) {
 });
 
 //edit profile
-app.post('/editProfile', async function (req, res, next) {
-  console.log('inserting user');
-  const rid =  req.body.aid;
-  const rfirstname = '' + req.body.firstname;
-  const rlastname = '' + req.body.lastname;
-  const phoneno = req.body.tel_no
-  const email = req.body.email
-  await pg('accounts').where({aid:rid})
-  .update({first_name: rfirstname, last_name: rlastname,tel_no: phoneno,email:email});
-  res.send('Done'); 
+app.post("/editProfile", async function(req, res, next) {
+  console.log("inserting user");
+  const rid = "" + req.body.aid;
+  const rfirstname = "" + req.body.firstname;
+  const rlastname = "" + req.body.lastname;
+  const phoneno = req.body.tel_no;
+  const email = req.body.email;
+  await pg("accounts").where({aid:rid}).update({
+    first_name: rfirstname,
+    last_name: rlastname,
+    tel_no: phoneno,
+    email: email
+  });
+  res.send("Done");
 });
 
 //when a request is picked to view more info on the request (send account info of the borrower)
@@ -320,7 +324,7 @@ app.get("/endsession", async function(req, res, next) {
     .then((err, result) =>
       pg("request")
         .select("rid", "token_used")
-        .as("t2")
+        .as("t1")
         .innerJoin(
           pg("session")
             .select("sid", "ais", "rid")
@@ -346,7 +350,7 @@ app.get("/endsession", async function(req, res, next) {
     .then((err, result) =>
       pg("request")
         .select("rid", "aid", "token_used")
-        .as("t2")
+        .as("t1")
         .innerJoin(
           pg("session")
             .select("sid", "rid")
@@ -709,6 +713,7 @@ app.post("/sessionStart", async function(req, res, next) {
     });
   //TBCC
 });
+
 app.listen(process.env.PORT || 3000, () => {
   console.log(`running on port: ${process.env.PORT}`);
 });
