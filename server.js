@@ -144,6 +144,18 @@ app.post('/profile',async function (req,res,next){
     });
 })
 
+//edit profile
+app.post('/editProfile', async function (req, res, next) {
+  console.log('inserting user');
+  const rid = '' + req.query.id;
+  const rfirstname = '' + req.query.firstname;
+  const rlastname = '' + req.query.lastname;
+  const phoneno = req.query.tel_no
+  const email = req.query.email
+  await pg('accounts').update({first_name: rfirstname, last_name: rlastname,tel_no: phoneno,email:email});
+  res.send('Done'); 
+});
+
 //when a request is picked to view more info on the request (send account info of the borrower)
 app.post('/accinfoinrequest', async function (req, res, next) {
   
