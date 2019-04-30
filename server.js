@@ -835,11 +835,11 @@ app.post("/deleteitem", async function(req, res, next) {
 });
 
 app.post("/sessionStart", async function(req, res, next) {
-  var rsid = req.query.sid;
+  var rsid = req.body.sid;
   pg("session")
     .where({ sid: rsid })
     .then(async function(result) {
-      if (result[0].s_status == "sessionStart") {
+      if (result[0].s_status == "go to kiosk") {
         console.log(result[0].s_status);
         pg("session")
           .where({ sid: rsid })
@@ -848,7 +848,7 @@ app.post("/sessionStart", async function(req, res, next) {
           });
       } else {
         console.log(result[0].s_status);
-        res.send({ res: "false" });
+        res.send('false');
       }
     });
   //TBCC
