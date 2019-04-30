@@ -181,10 +181,14 @@ app.post('/borrowRequest',function(req,res,next){
   var rk_location = req.body.k_location+'';
   var rborrow_time = req.body.borrow_time+'';
   var rreturn_time = req.body.return_time +'';
-  var aid = req.body.aid+'';
-  //var rimage = req.query.image+''; add column
+  var raid = req.body.aid+'';
+  pg('request')
+  .where({aid: raid,l_status : false})
+  .then(async function(result){
+  if(!result || !result[0]){
+        //var rimage = req.query.image+''; add column
   pg('accounts')
-  .where({it_chula:aid})
+  .where({aid:raid})
   .then(async function(result){
     await pg('request').insert({
       note:rnote,
@@ -194,11 +198,15 @@ app.post('/borrowRequest',function(req,res,next){
       k_location:rk_location,
       borrow_time:pg.fn.now(),
       return_time:pg.fn.now(),
-      aid : aid,
+      aid : raid,
       //image : rimage; add column
     })
     res.send('added item into list');
   })
+  } else{
+    console.log('entered wrong id')
+    res.send('entered wrong id or still in request')
+  }
   //var image;
   //var id;
 });
@@ -369,7 +377,7 @@ app.post('/iotchecklenderqr',function (req, res, next) {
     pg('accounts')
    .where({qrcode : rqrcode}).select('aid' ) 
    .then(result =>{
-    pg('session').where({aid: JSON.stringify(result[0].aid)}).then(async function(result){
+    pg('session').where({aid: JSON.stringify(result[0].aid),s_status: false}).then(async function(result){
       if(!result||!result[0]){
         console.log('user not in sesion');
         res.send({res: 'false'});
@@ -414,7 +422,7 @@ app.post('/sessionStart', async function (req,res,next){
 app.post('/iotcheckitemqr',function(req,res,next){
   var riqrcode = req.body.stringItemQR;
   pg('items')
-  .where({item_qrcode:riqrcode})
+  .where({item_qrcode:riqrcode}).select('iid','item_qrcode','aid')
   .then(async function(result){
     if(!result || !result[0]){
       console.log('fake qr');
@@ -423,11 +431,10 @@ app.post('/iotcheckitemqr',function(req,res,next){
     }
     else{
      
-      pg('session').where({rid: JSON.stringify(result[0].aid)})
-          .update({s_status: 'itemcheck'});
+      pg('session').where({rid: JSON.stringify(result[0].aid),s_status:'lendercheck'})
+          .update({s_status: 'itemcheck',iid : JSON.stringify(result[0].iid)});
       pg('items').where({item_qrcode:riqrcode}).select('item_name')
       .then(result=>{
-        console.log('user not in sesion');
         res.send(JSON.stringify(result));
         })
     }
@@ -457,7 +464,7 @@ app.post('/iotcheckborrowerqr',function (req, res, next) {
       console.log(result[0].rid);
       console.log(result[0])
       console.log(JSON.stringify(result[0].rid) + ' result')
-      pg('session').where({rid : JSON.stringify(result[0].rid)})
+      pg('session').where({rid : JSON.stringify(result[0].rid),s_status: 'itemcheck'})
       .then(async function(result){
         if(!result || !JSON.stringify(result[0])){
           console.log('user not in sesion');
@@ -465,7 +472,7 @@ app.post('/iotcheckborrowerqr',function (req, res, next) {
           res.send({res:'false'});
         }
         else {
-          pg('session').where({rid: JSON.stringify(result[0].aid)})
+          pg('session').where({rid: JSON.stringify(result[0].aid),s_status: 'itemcheck'})
           .update({s_status: 'sessionStart'})
           pg('accounts').where({qrcode:rqrcode}).select('first_name')
           .then(result=>{
@@ -548,3 +555,4 @@ app.post('/deleteitem', async function (req, res, next) {
 app.listen(process.env.PORT || 3000, () => {
   console.log(`running on port: ${process.env.PORT}`);
 });
+})
