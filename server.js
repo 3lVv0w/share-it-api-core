@@ -206,6 +206,7 @@ app.post("/accinfoinrequest", async function(req, res, next) {
 
 app.post("/borrowRequest", function(req, res, next) {
   console.log("listing item onto request catalogue");
+  console.log(req.body);
   var rnote = req.body.note + "";
   var ritem_name = req.body.item_name + "";
   var ritem_type = req.body.item_type + "";
@@ -231,9 +232,8 @@ app.post("/borrowRequest", function(req, res, next) {
               item_type: ritem_type,
               token_used: rtoken_used,
               k_location: rk_location,
-              borrow_time: pg.fn.now(),
-              return_time: pg.fn.now(),
-
+              borrow_time: rborrow_time,
+              return_time: rreturn_time,
               aid: raid,
               image : rimage
             });
