@@ -300,28 +300,34 @@ app.post("/acceptRequest", async function(req, res, next) {
   //res.send() send borrower id
 });
 //refresh session page (for borrower)
-app.post("/checkAccept", async function(req, res, next) {
-  var rrid = req.query.rid + "";
-  console.log("refresh");
-  await pg("request")
-    .where({ rid: rrid, l_status: "true" })
-    .then(async function(result) {
-      if (!result || !result[0]) {
-        res.send("false");
-        console.log("false");
-      } else {
-        console.log("true");
-        //await pg('accounts').where({aid: pg('session').distinct('aid').where({rid: rrid})})
-        await pg
-          .table("accounts")
-          .innerJoin("session", "accounts.aid", "=", "session.aid")
-          .where({ s_status: "go to kiosk", rid: rrid })
-          .then(result => {
-            console.log(result);
-            res.send(result);
-          });
-      }
-    });
+
+app.post('/checkAccept',async function(req,res,next){
+  var raid = req.body.aid ;
+  console.log(raid);
+  console.log('refresh');
+  await pg('request')
+  .where({aid:raid,l_status:'true'})
+  .then(async function (result){
+    if(!result || !result[0]){
+      res.send('false');
+      console.log('false');
+    }
+    else{
+      console.log('true');
+      var temp_rid =  pg('request').where({aid: raid,l_status:'true'}).select('rid');
+      console.log(temp_rid);
+      await pg.table('accounts').innerJoin('session','accounts.aid','=','session.aid').where({s_status:'go to kiosk',rid:temp_rid})
+      .then(result=>{
+        if(!result || !result[0]){
+          res.send('false');
+          console.log('false');
+        }else{
+        console.log(result);
+        res.send(result);}
+      })
+    }
+  })
+
 
   //check if status in request has been changed
   //accept aid res if id in session send info of lender else send no session
