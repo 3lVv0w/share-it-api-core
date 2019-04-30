@@ -3,6 +3,7 @@
 require("dotenv").config();
 const morgan = require("morgan");
 const express = require("express");
+
 const pg = require("knex")({
   client: "postgresql",
   connection: process.env.DATABASE_URL,
@@ -16,6 +17,8 @@ const pg = require("knex")({
 //     password: 'password',
 //   },
 //   searchPath: ['knex', 'public'],
+
+
 // });
 
 const bodyParser = require("body-parser");
@@ -399,18 +402,15 @@ app.get("/endsession", async function(req, res, next) {
 });
 
 //feedback
-app.post("/feedback", async function(req, res, next) {
-  console.log("inserting user");
-  var c_rating = parseInt(req.query.rating);
-  const c_comment = "" + req.query.comment;
-  const c_t_it_chula = "" + req.query.t_it_chula;
-  const c_f_it_chula = "" + req.query.f_it_chula;
-  var c_taid = pg("accounts")
-    .where({ it_chula: c_t_it_chula })
-    .select("aid");
-  var c_faid = pg("accounts")
-    .where({ it_chula: c_f_it_chula })
-    .select("aid");
+
+app.post('/feedback', async function (req, res, next) {
+  console.log('inserting user');
+  var c_rating = parseInt(req.body.rating);
+  const c_comment = '' + req.body.comment;
+  const c_faid = '' + req.body.f_aid;
+  const c_taid = '' + req.body.t_aid;
+ 
+  
 
   console.log(c_taid);
 
@@ -447,13 +447,18 @@ app.post("/feedback", async function(req, res, next) {
         .update({ no_of_feedback: new_fno });
       //console.log('new no.of feedback =' + new_fno);
 
-      await pg("accounts")
-        .where({ aid: c_taid })
-        .update({ avg_rating: new_rating });
-      console.log("new avg_rating = " + new_rating);
-    });
 
-  res.send("Done");
+      
+      await pg('accounts')
+      .where({ aid: c_taid })
+      .update({ avg_rating: new_rating })
+      console.log('new avg_rating = ' + new_rating);
+      res.send('Done'); 
+
+   });
+  
+  //res.send('Done'); 
+
 });
 
 //=========>    KIOSK
