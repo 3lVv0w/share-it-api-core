@@ -880,7 +880,7 @@ app.post("/defualtaccount", async function(req, res, next) {
         });
       }
     });
-    res.send(200);
+  res.send(200);
 });
 
 app.post("/defualtitem", async function(req, res, next) {
@@ -891,14 +891,14 @@ app.post("/defualtitem", async function(req, res, next) {
       if (!result || !result[0]) {
         await pg("accounts").insert({
           iid: 0,
-          item_name: name,
-          item_type: type,
-          item_qrcode: result[0].qrcode,
-          belonged_aid: aid
+          item_name: 'defualt',
+          item_type: 'defualt',
+          item_qrcode: 'defualt',
+          belonged_aid: raid
         });
+        res.send(200);
       }
     });
-    res.send(200);
 });
 
 app.listen(process.env.PORT || 3000, () => {
