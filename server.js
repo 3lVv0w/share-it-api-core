@@ -316,8 +316,8 @@ app.post('/checkAccept',async function(req,res,next){
 //session end
 //session end
 app.get("/endsession", async function(req, res, next) {
-  var sessionstatus = req.query.status + "";
-  var sessionid = req.query.sid + "";
+  var sessionstatus = req.body.status + "";
+  var sessionid = req.body.sid + "";
 
   if (sessionstatus === "end")
     await pg("session")
