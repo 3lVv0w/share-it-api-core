@@ -4,20 +4,20 @@ require("dotenv").config();
 const morgan = require("morgan");
 const express = require("express");
 
-const pg = require("knex")({
-  client: "postgresql",
-  connection: process.env.DATABASE_URL,
-  useNullAsDefault: true
-});
-// var pg = require("knex")({
-//   client: "pg",
-//   connection: {
-//     database: "share_it",
-//     user: "postgres",
-//     password: "password"
-//   },
-//   searchPath: ["knex", "public"]
+// const pg = require("knex")({
+//   client: "postgresql",
+//   connection: process.env.DATABASE_URL,
+//   useNullAsDefault: true
 // });
+var pg = require("knex")({
+  client: "pg",
+  connection: {
+    database: "share_it",
+    user: "postgres",
+    password: "password"
+  },
+  searchPath: ["knex", "public"]
+});
 
 const bodyParser = require("body-parser");
 const { join } = require("path");
@@ -867,7 +867,7 @@ app.post("/defualtaccount", async function(req, res, next) {
   pg("accounts")
     .where({ it_chula: id })
     .then(async function(result) {
-      if (!result || !result[0]) {
+      if (result[0]) {
         await pg("accounts").insert({
           aid: 0,
           tel_no: "0",
@@ -888,7 +888,7 @@ app.post("/defualtitem", async function(req, res, next) {
   pg("accounts")
     .where({ aid: raid })
     .then(async function(result) {
-      if (!result || !result[0]) {
+      if (result[0]) {
         await pg("items").insert({
           iid: 0,
           item_name: 'defualt',
@@ -896,9 +896,9 @@ app.post("/defualtitem", async function(req, res, next) {
           item_qrcode: 'defualt',
           belonged_aid: raid
         });
-        res.send(200);
       }
     });
+    return res.send(200);
 });
 
 app.listen(process.env.PORT || 3000, () => {
