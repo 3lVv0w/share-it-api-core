@@ -3,20 +3,20 @@
 require('dotenv').config();
 const morgan = require("morgan");
 const express = require("express");
-const pg = require('knex')({
-  client: 'postgresql',
-  connection: process.env.DATABASE_URL,
-  useNullAsDefault: true
-});
-// var pg = require('knex')({
-//   client: 'pg',
-//   connection: {
-//     database: 'share_it',
-//     user: 'postgres',
-//     password: 'password',
-//   },
-//   searchPath: ['knex', 'public'],
+// const pg = require('knex')({
+//   client: 'postgresql',
+//   connection: process.env.DATABASE_URL,
+//   useNullAsDefault: true
 // });
+var pg = require('knex')({
+  client: 'pg',
+  connection: {
+    database: 'share_it',
+    user: 'postgres',
+    password: 'password',
+  },
+  searchPath: ['knex', 'public'],
+});
 
 
 const bodyParser = require("body-parser");
@@ -95,11 +95,13 @@ pg('accounts')
     var pass = result[0].password;
      if (passwordReq === pass) {
       console.log(usernameReq+ ' login success');
-      res.send(pg('accounts').select(aid).where({it_chula:usernameReq}));
+      var account_no = pg('accounts').select(aid).where({it_chula:usernameReq});
+      console.log('send to front = '+account_no);
+      res.send({user_acc_no:account_no});
 
     } else {
       console.log('wrong password');
-      res.send('wrong password')
+      res.send({user_acc_no:'wrong password'});
   
     }
   })
@@ -110,14 +112,18 @@ pg('accounts')
 //home category page when one of the category is chosen
 app.post('/homepage', async function (req, res, next) {
   
-  const ritem_type = req.query.item_type;
+  var ritem_type = req.body.item_type;
  
   console.log('Querying from item type: '+ ritem_type)
   pg.schema
     .then((err, result) => pg.where({item_type:ritem_type}).select().table('request'))
     .then(result => {
+      if (!result || !result[0]){
+        res.send('no request');
+      } else {
       console.log(result);
       res.send(result);
+      }
     });
 });
 
@@ -139,14 +145,14 @@ app.post('/accinfoinrequest', async function (req, res, next) {
 
 app.post('/borrowRequest',function(req,res,next){
   console.log('listing item onto request catalogue')
-  var rnote = req.query.note+'';
-  var ritem_name = req.query.item_name+'';
-  var ritem_type = req.query.item_type+'';
-  var rtoken_used = req.query.token_used+'';
-  var rk_location = req.query.k_location+'';
-  var rborrow_time = req.query.borrow_time+'';
-  var rreturn_time = req.query.return_time +'';
-  var aid = req.query.aid+'';
+  var rnote = req.body.note+'';
+  var ritem_name = req.body.item_name+'';
+  var ritem_type = req.body.item_type+'';
+  var rtoken_used = req.body.token_used+'';
+  var rk_location = req.body.k_location+'';
+  var rborrow_time = req.body.borrow_time+'';
+  var rreturn_time = req.body.return_time +'';
+  var aid = req.body.aid+'';
   //var rimage = req.query.image+''; add column
   pg('accounts')
   .where({it_chula:aid})
@@ -159,7 +165,7 @@ app.post('/borrowRequest',function(req,res,next){
       k_location:rk_location,
       borrow_time:pg.fn.now(),
       return_time:pg.fn.now(),
-      aid : pg('accounts').where({it_chula:aid}).select('aid'),
+      aid : aid,
       //image : rimage; add column
     })
     res.send('added item into list');
