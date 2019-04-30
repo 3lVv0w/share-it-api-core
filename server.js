@@ -560,7 +560,6 @@ app.put("/iotcheckitemqr", function(req, res, next) {
 app.put("/iotcheckborrowerqr", function(req, res, next) {
   var rqrcode = req.body.stringBorrowerQR;
   console.log(rqrcode);
-  var borrowid;
   pg("accounts")
     .where({ qrcode: rqrcode })
     .then(async function(result) {
@@ -581,7 +580,6 @@ app.put("/iotcheckborrowerqr", function(req, res, next) {
               console.log(result[0].rid);
               console.log(result[0]);
               console.log(JSON.stringify(result[0].rid) + " result");
-              borrowid = result[0].rid;
               pg("session")
                 .where({
                   rid: JSON.stringify(result[0].rid),
@@ -594,10 +592,16 @@ app.put("/iotcheckborrowerqr", function(req, res, next) {
                     res.send({ res: "false" });
                   } else {
                     pg.schema
+                    .then((err, result) =>
+                    pg("accounts")
+                    .innerJoin("request", "accounts.aid", "=", "request.aid")
+                    .select("rid")
+                    .where({ qrcode: rqrcode })
+                    )
                     .then(async result => {
                       console.log("updating item status");
                       await pg("session")
-                      .where({ rid: JSON.stringify(borrowid),
+                      .where({ rid: JSON.stringify(result[0].rid),
                         s_status: "itemcheck" })
                       .update({
                         s_status: "sessionStart"
