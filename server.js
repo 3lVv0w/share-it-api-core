@@ -33,6 +33,8 @@ app.use(require("cors")());
 
 app.use(bodyParser.json(), bodyParser.urlencoded({ extended: true }));
 
+app.use('/', express.static(__dirname + '/public'));
+
 // app.use("/", serveStatic(join(__dirname, "/dist")));
 
 app.post("/insertRegChula", async function(req, res, next) {
@@ -447,17 +449,14 @@ app.post('/feedback', async function (req, res, next) {
         .update({ no_of_feedback: new_fno });
       //console.log('new no.of feedback =' + new_fno);
 
-
-      
       await pg('accounts')
       .where({ aid: c_taid })
       .update({ avg_rating: new_rating })
       console.log('new avg_rating = ' + new_rating);
-      res.send('Done'); 
+      res.send('Done');
 
    });
-  
-  //res.send('Done'); 
+  //res.send('Done');
 
 });
 
