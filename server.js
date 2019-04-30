@@ -9,14 +9,14 @@ const pg = require("knex")({
   connection: process.env.DATABASE_URL,
   useNullAsDefault: true
 });
-// var pg = require('knex')({
-//   client: 'pg',
+// var pg = require("knex")({
+//   client: "pg",
 //   connection: {
-//     database: 'share_it',
-//     user: 'postgres',
-//     password: 'password',
+//     database: "share_it",
+//     user: "postgres",
+//     password: "password"
 //   },
-//   searchPath: ['knex', 'public'],
+//   searchPath: ["knex", "public"]
 // });
 
 const bodyParser = require("body-parser");
@@ -30,8 +30,6 @@ app.use(morgan("dev"));
 app.use(require("cors")());
 
 app.use(bodyParser.json(), bodyParser.urlencoded({ extended: true }));
-
-
 
 // app.use("/", serveStatic(join(__dirname, "/dist")));
 
@@ -59,7 +57,9 @@ app.post("/signup", async function(req, res, next) {
   var remail = req.body.email + "";
   var rit_chula = req.body.it_chula + "";
   var rqrcode = rit_chula + rfirstname;
-  var rimage =  req.body.image + "";
+
+  var rimage = req.body.image + "";
+
   //var checked_it_chula;
   pg("temp_it_chula")
     .where({
@@ -136,7 +136,7 @@ app.post("/homepage", async function(req, res, next) {
   pg.schema
     .then((err, result) =>
       pg
-        .where({ item_type: ritem_type })
+        .where({ item_type: ritem_type, l_status: false })
         .select()
         .table("request")
     )
@@ -168,17 +168,21 @@ app.post("/profile", async function(req, res, next) {
 //edit profile
 app.post("/editProfile", async function(req, res, next) {
   console.log("inserting user");
-  const rid = "" + req.body.aid;
+
+  const rid = req.body.aid;
   const rfirstname = "" + req.body.firstname;
   const rlastname = "" + req.body.lastname;
   const phoneno = req.body.tel_no;
   const email = req.body.email;
-  await pg("accounts").where({aid:rid}).update({
-    first_name: rfirstname,
-    last_name: rlastname,
-    tel_no: phoneno,
-    email: email
-  });
+  await pg("accounts")
+    .where({ aid: rid })
+    .update({
+      first_name: rfirstname,
+      last_name: rlastname,
+      tel_no: phoneno,
+      email: email
+    });
+
   res.send("Done");
 });
 
@@ -199,111 +203,161 @@ app.post("/accinfoinrequest", async function(req, res, next) {
 
 //insert info on a new request
 
-app.post('/borrowRequest',function(req,res,next){
-  console.log('listing item onto request catalogue')
-  var rnote = req.body.note+'';
-  var ritem_name = req.body.item_name+'';
-  var ritem_type = req.body.item_type+'';
-  var rtoken_used = req.body.token_used+'';
-  var rk_location = req.body.k_location+'';
-  var rborrow_time = req.body.borrow_time+'';
-  var rreturn_time = req.body.return_time +'';
-  var raid = req.body.aid+'';
-  var rimage =  req.body.examplePicUrl + "";
-  pg('request')
-  .where({aid: raid,l_status : 'false'})
-  .then(async function(result){
-  if(!result || !result[0]){
+app.post("/borrowRequest", function(req, res, next) {
+  console.log("listing item onto request catalogue");
+  var rnote = req.body.note + "";
+  var ritem_name = req.body.item_name + "";
+  var ritem_type = req.body.item_type + "";
+  var rtoken_used = req.body.token_used + "";
+  var rk_location = req.body.k_location + "";
+  var rborrow_time = req.body.borrow_time + "";
+  var rreturn_time = req.body.return_time + "";
+  var raid = req.body.aid + "";
+
+  var rimage = req.body.examplePicUrl + "";
+
+  pg("request")
+    .where({ aid: raid, l_status: "false" })
+    .then(async function(result) {
+      if (!result || !result[0]) {
         //var rimage = req.query.image+''; add column
-  pg('accounts')
-  .where({aid:raid})
-  .then(async function(result){
-    await pg('request').insert({
-      note:rnote,
-      item_name:ritem_name,
-      item_type:ritem_type,
-      token_used:rtoken_used,
-      k_location:rk_location,
-      borrow_time:pg.fn.now(),
-      return_time:pg.fn.now(),
-      aid : raid,
-      image: rimage
-      //image : rimage; add column
-    })
-    res.send('added item into list');
-  })
-  } else{
-    console.log(result);
-    console.log('request cant be created')
-    res.send('entered wrong id or still in request')
-  }
-  //var image;
-  //var id;
-}) 
+        pg("accounts")
+          .where({ aid: raid })
+          .then(async function(result) {
+            await pg("request").insert({
+              note: rnote,
+              item_name: ritem_name,
+              item_type: ritem_type,
+              token_used: rtoken_used,
+              k_location: rk_location,
+              borrow_time: pg.fn.now(),
+              return_time: pg.fn.now(),
+
+              aid: raid,
+              image: rimage
+
+              //image : rimage; add column
+            });
+            res.send("added item into list");
+          });
+      } else {
+        console.log(result);
+        console.log("request cant be created");
+
+        res.send("entered wrong id or still in request");
+      }
+      //var image;
+      //var id;
+    });
 });
 
 //lender accept request
-app.post('/acceptRequest', async function(req,res,next){
-  var rrid = req.body.rid +'';
-  var raid = req.body.aid + '';
+app.post("/acceptRequest", async function(req, res, next) {
+  var rrid = req.body.rid + "";
+  var raid = req.body.aid + "";
   console.log(rrid);
   console.log(raid);
-await pg('accounts').where({aid:raid})
-.then(async function (result){
-  if(result[0].token>0){
-  await  pg('request')
-  .where({rid: rrid})
-  .update('l_status','true'); 
-await pg('accounts')
-  .where({aid:raid})
-  .update('in_session','true');
-await pg('accounts')
-  .where({aid : pg('request').select('aid').where({rid : rrid})})
-  .update('in_session','true');
-await pg('session')
-  .insert({start_time : pg.fn.now(), end_time : pg.fn.now(), aid :raid, rid: rrid, s_status : 'go to kiosk', iid : 0 })
-  pg(pg('request').select('rid','aid').as('t1'))
-  .innerJoin(pg('session').select('sid','rid').as('t2'),'t1.rid','=','t2.rid')
-  .innerJoin(pg('accounts').where({aid : pg('request').distinct('aid').where({rid : rrid})}).as('t3'),'t1.aid','=','t3.aid')
-.then(result =>{
-    console.log(result);
-    res.send(result)
- })
-}
-else res.send('not enough token');
-})
-  //update status in request
-  //res.send() send borrower id
+  await pg("request")
+    .where({ rid: rrid, l_status: true })
+    .then(async function(result) {
+      if (!result || !result[0]) {
+        res.send("not enough token");
+        console.log("false");
+      } else {
+        await pg("accounts")
+          .where({ aid: raid })
+          .then(async function(result) {
+            if (result[0].token > 0) {
+              await pg("request")
+                .where({ rid: rrid })
+                .update("l_status", "true");
+              await pg("accounts")
+                .where({ aid: raid })
+                .update("in_session", "true");
+              await pg("accounts")
+                .where({
+                  aid: pg("request")
+                    .select("aid")
+                    .where({ rid: rrid })
+                })
+                .update("in_session", "true");
+              await pg("session").insert({
+                start_time: pg.fn.now(),
+                end_time: pg.fn.now(),
+                aid: raid,
+                rid: rrid,
+                s_status: "go to kiosk",
+                iid: 0
+              });
+              pg(
+                pg("request")
+                  .select("rid", "aid")
+                  .as("t1")
+              )
+                .innerJoin(
+                  pg("session")
+                    .select("sid", "rid")
+                    .as("t2"),
+                  "t1.rid",
+                  "=",
+                  "t2.rid"
+                )
+                .innerJoin(
+                  pg("accounts")
+                    .where({
+                      aid: pg("request")
+                        .distinct("aid")
+                        .where({ rid: rrid })
+                    })
+                    .as("t3"),
+                  "t1.aid",
+                  "=",
+                  "t3.aid"
+                )
+                .then(result => {
+                  console.log(result);
+                  res.send(result);
+                });
+            } else res.send("not enough token");
+          });
+      }
+      //update status in request
+      //res.send() send borrower id
+    });
 });
 //refresh session page (for borrower)
 
-app.post('/checkAccept',async function(req,res,next){
-  var raid = req.body.aid ;
+app.post("/checkAccept", async function(req, res, next) {
+  var raid = req.body.aid;
   console.log(raid);
-  console.log('refresh');
-  await pg('request')
-  .where({aid:raid,l_status:'true'})
-  .then(async function (result){
-    if(!result || !result[0]){
-      res.send('false');
-      console.log('false');
-    }
-    else{
-      console.log('true');
-      var temp_rid =  pg('request').where({aid: raid,l_status:'true'}).select('rid');
-      console.log(temp_rid);
-      await pg.table('accounts').innerJoin('session','accounts.aid','=','session.aid').where({s_status:'go to kiosk',rid:temp_rid})
-      .then(result=>{
-        if(!result || !result[0]){
-          res.send('false');
-          console.log('false');
-        }else{
-        console.log(result);
-        res.send(result);}
-      })
-    }
-  })
-
+  console.log("refresh");
+  await pg("request")
+    .where({ aid: raid, l_status: "true" })
+    .then(async function(result) {
+      if (!result || !result[0]) {
+        res.send("false");
+        console.log("false");
+      } else {
+        console.log("true");
+        var temp_rid = pg("request")
+          .where({ aid: raid, l_status: "true" })
+          .select("rid");
+        console.log(temp_rid);
+        await pg
+          .table("accounts")
+          .innerJoin("session", "accounts.aid", "=", "session.aid")
+          .where({ s_status: "go to kiosk", rid: temp_rid })
+          .then(result => {
+            if (!result || !result[0]) {
+              res.send("false");
+              console.log("false");
+            } else {
+              console.log(result);
+              res.send(result);
+            }
+          });
+      }
+    });
 
   //check if status in request has been changed
   //accept aid res if id in session send info of lender else send no session
@@ -311,79 +365,163 @@ app.post('/checkAccept',async function(req,res,next){
 
 //session end
 //session end
-app.get("/endsession", async function(req, res, next) {
+app.post("/endsession", async function(req, res, next) {
   var sessionstatus = req.body.status + "";
   var sessionid = req.body.sid + "";
+  var raid = req.body.aid + "";
+  var t_used = null;
+  var aid = null;
+  var t = 0;
+  var t_updated;
 
-  if (sessionstatus === "end")
-    await pg("session")
-      .where({ sid: sessionid })
-      .update("s_status", "end");
+  await pg("session")
+    .select("aid")
+    .where({ aid: raid })
+    .then(async result => {
+      if (!(!result || !result[0])) {
+        if (sessionstatus === "end") {
+          await pg("session")
+            .where({ sid: sessionid })
+            .update({ s_status: "end" });
+        }
 
-  pg.schema
-    .then((err, result) =>
-      pg("request")
-        .select("rid", "token_used")
-        .as("t1")
-        .innerJoin(
-          pg("session")
-            .select("sid", "ais", "rid")
-            .where({ sid: sessionid })
-            .as("t2"),
-          "t1.rid",
-          "=",
-          "t2.rid"
-        )
-        .select("token_used", "aid")
-    )
-    .then(async result => {
-      console.log(result);
-      var t = pg("account")
-        .where("aid", result[1])
-        .select("token");
-      var t_updated = t + result[0];
-      await pg("accounts")
-        .where({ aid: result[1] })
-        .update({ token: t_updated });
-    });
-  pg.schema
-    .then((err, result) =>
-      pg("request")
-        .select("rid", "aid", "token_used")
-        .as("t1")
-        .innerJoin(
-          pg("session")
-            .select("sid", "rid")
-            .where({ sid: sessionid })
-            .as("t2"),
-          "t1.rid",
-          "=",
-          "t2.rid"
-        )
-        .select("token_used", "aid")
-    )
-    .then(async result => {
-      console.log(result);
-      var t = pg("account")
-        .where("aid", result[1])
-        .select("token");
-      var t_updated = t - result[0];
-      await pg("accounts")
-        .where({ aid: result[1] })
-        .update({ token: t_updated });
+        // query old token
+        pg.schema
+          .then((err, result) =>
+            pg(
+              pg("request")
+                .select("rid", "token_used")
+                .as("t1")
+            )
+              .innerJoin(
+                pg("session")
+                  .select("sid", "aid", "rid")
+                  .where({ sid: sessionid })
+                  .as("t2"),
+                "t1.rid",
+                "=",
+                "t2.rid"
+              )
+              .select("token_used", "aid")
+          )
+          .then(async result => {
+            console.log(result[0].token_used);
+            t_used = result[0].token_used; // 20
+            console.log(t_used);
+            aid = result[0].aid;
+            console.log(aid);
+            pg("accounts")
+              .where({ aid: aid })
+              .select("token")
+
+              .then(async result => {
+                //console.log(result)
+                t = result[0].token;
+                console.log(t);
+                t_updated = t - t_used;
+                console.log("t_updated = " + t_updated);
+                console.log("aid = " + aid);
+                console.log("remaining token = " + t_updated);
+
+                // pg.schema.raw("update accounts set in_session=true,token="+t_updated+" where aid =" + aid);
+                await pg("accounts")
+                  .where("aid", "=", aid)
+                  .update("in_session", false);
+                console.log("----");
+                await pg("accounts")
+                  .where("aid", "=", aid)
+                  .update("token", t_updated);
+                pg("accounts")
+                  .where({ aid: aid })
+                  .then(async result => {
+                    console.log(result);
+                    console.log("lender end");
+                    res.send("true");
+                  });
+              });
+          });
+      } else {
+        pg("session")
+          .select("s_status")
+          .where({ sid: sessionid })
+          .then(async result => {
+            if (result[0].s_status == "end") {
+              // console.log(result);
+              pg.schema
+                .then((err, result) =>
+                  pg(
+                    pg("request")
+                      .select("rid", "aid", "token_used")
+                      .as("t1")
+                  )
+                    .innerJoin(
+                      pg("session")
+                        .select("sid", "rid")
+                        .where({ sid: sessionid })
+                        .as("t2"),
+                      "t1.rid",
+                      "=",
+                      "t2.rid"
+                    )
+                    .select("token_used", "aid")
+                )
+                .then(async result => {
+                  console.log(result);
+                  console.log(result[0].aid);
+                  aid = result[0].aid;
+                  pg("accounts")
+                    .where({ aid: result[0].aid })
+                    .select("token")
+
+                    .then(async result => {
+                      //console.log(result)
+                      t = result[0].token;
+                      console.log(t);
+                      t_updated = t - t_used;
+                      console.log("t_updated = " + t_updated);
+                      console.log("aid = " + aid);
+                      console.log("remaining token = " + t_updated);
+
+                      // pg.schema.raw("update accounts set in_session=true,token="+t_updated+" where aid =" + aid);
+                      await pg("accounts")
+                        .where("aid", "=", aid)
+                        .update("in_session", false);
+                      console.log("----");
+                      await pg("accounts")
+                        .where("aid", "=", aid)
+                        .update("token", t_updated);
+                      pg("accounts")
+                        .where({ aid: aid })
+                        .then(async result => {
+                          console.log(result);
+                          console.log("borrowerend");
+                          res.send("true");
+                        });
+                    });
+                });
+            } else {
+              console.log("false");
+              res.send("false");
+            }
+          });
+      }
     });
 });
 
+// var t_updated = t - result[0].token_used;
+// await pg("accounts")
+//   .where({ aid: result[0].aid })
+//   .update({ token: t_updated, in_session:"false"});
+
 //feedback
 
-app.post('/feedback', async function (req, res, next) {
-  console.log('inserting user');
+app.post("/feedback", async function(req, res, next) {
+  console.log("inserting user");
   var c_rating = parseInt(req.body.rating);
-  const c_comment = '' + req.body.comment;
-  const c_taid = '' + req.body.t_aid;
-  const c_faid = '' + req.body.f_aid;
- 
-  
+  const c_comment = "" + req.body.comment;
+
+  const c_taid = "" + req.body.t_aid;
+  const c_faid = "" + req.body.f_aid;
 
   console.log(c_taid);
 
@@ -408,20 +546,19 @@ app.post('/feedback', async function (req, res, next) {
       var new1 = old_rating * fno + c_rating;
       var new_rating = new1 / new_fno;
 
-      await pg('accounts')
-      .where({ aid: c_taid })
-      .update({ no_of_feedback: new_fno })
+      await pg("accounts")
+        .where({ aid: c_taid })
+        .update({ no_of_feedback: new_fno });
       //console.log('new no.of feedback =' + new_fno);
 
-      await pg('accounts')
-      .where({ aid: c_taid })
-      .update({ avg_rating: new_rating })
-      console.log('new avg_rating = ' + new_rating);
-      res.send('Done');
+      await pg("accounts")
+        .where({ aid: c_taid })
+        .update({ avg_rating: new_rating });
+      console.log("new avg_rating = " + new_rating);
+      res.send("Done");
+    });
 
-   });
   //res.send('Done');
-
 });
 
 //=========>    KIOSK
@@ -452,21 +589,21 @@ app.put("/iotchecklenderqr", function(req, res, next) {
                   console.log("user not in sesion");
                   res.send({ res: "false" });
                 } else {
-                 pg.schema
-                  .then((err, result) =>
-                    pg("accounts")
-                      .where({  qrcode: rqrcode })
-                      .select("aid")
-                  )
-                  .then(async result => {
-                    console.log("updating status");
-                    await pg("session")
-                      .where({ aid: JSON.stringify(result[0].aid) })
-                      .update({
-                        s_status: "lendercheck"
-                      })
-                  console.log("update status");
-                    })
+                  pg.schema
+                    .then((err, result) =>
+                      pg("accounts")
+                        .where({ qrcode: rqrcode })
+                        .select("aid")
+                    )
+                    .then(async result => {
+                      console.log("updating status");
+                      await pg("session")
+                        .where({ aid: JSON.stringify(result[0].aid) })
+                        .update({
+                          s_status: "lendercheck"
+                        });
+                      console.log("update status");
+                    });
                   pg("accounts")
                     .where({ aid: JSON.stringify(result[0].aid) })
                     .select("first_name")
@@ -481,28 +618,7 @@ app.put("/iotchecklenderqr", function(req, res, next) {
     });
 });
 
-app.post('/sessionStart', async function (req,res,next){
-  var rsid = req.body.sid;
-  pg('session')
-  .where({sid:rsid})
-  .then(async function(result){
-    if(result[0].s_status=='sessionStart'){ // go to kiosk to session start duay***********************************
-      console.log(result[0].s_status);
-      pg('session').where({sid:rsid})
-      .then(result=>{
-      res.send(result);
-      })
-    }
-    else{
-
-      console.log(result[0].s_status);
-      res.send('false');
-    }
-  })
-  //TBCC
-});
-
-app.put('/iotcheckitemqr',function(req,res,next){
+app.put("/iotcheckitemqr", function(req, res, next) {
   var riqrcode = req.body.stringItemQR;
   pg("items")
     .where({ item_qrcode: riqrcode })
@@ -514,21 +630,24 @@ app.put('/iotcheckitemqr',function(req,res,next){
         res.send({ res: "false" });
       } else {
         pg.schema
-        .then((err, result) =>
-          pg("items")
-          .where({  item_qrcode: riqrcode })
-          .select("belonged_aid","iid")
-        )
-        .then(async result => {
-          console.log("updating item status");
-          await pg("session")
-          .where({ aid: JSON.stringify(result[0].belonged_aid), s_status: "lendercheck" })
-          .update({
-            s_status: "itemcheck",
-            iid: JSON.stringify(result[0].iid)
-          })
-          console.log("updated item status");
-        })
+          .then((err, result) =>
+            pg("items")
+              .where({ item_qrcode: riqrcode })
+              .select("belonged_aid", "iid")
+          )
+          .then(async result => {
+            console.log("updating item status");
+            await pg("session")
+              .where({
+                aid: JSON.stringify(result[0].belonged_aid),
+                s_status: "lendercheck"
+              })
+              .update({
+                s_status: "itemcheck",
+                iid: JSON.stringify(result[0].iid)
+              });
+            console.log("updated item status");
+          });
         pg("items")
           .where({ item_qrcode: riqrcode })
           .select("item_name")
@@ -543,6 +662,7 @@ app.put('/iotcheckitemqr',function(req,res,next){
 app.put("/iotcheckborrowerqr", function(req, res, next) {
   var rqrcode = req.body.stringBorrowerQR;
   console.log(rqrcode);
+  var borrowid;
   pg("accounts")
     .where({ qrcode: rqrcode })
     .then(async function(result) {
@@ -563,6 +683,7 @@ app.put("/iotcheckborrowerqr", function(req, res, next) {
               console.log(result[0].rid);
               console.log(result[0]);
               console.log(JSON.stringify(result[0].rid) + " result");
+              borrowid = result[0].rid;
               pg("session")
                 .where({
                   rid: JSON.stringify(result[0].rid),
@@ -575,22 +696,30 @@ app.put("/iotcheckborrowerqr", function(req, res, next) {
                     res.send({ res: "false" });
                   } else {
                     pg.schema
-                    .then((err, result) =>
-                    pg("accounts")
-                    .innerJoin("request", "accounts.aid", "=", "request.aid")
-                    .select("rid")
-                    .where({ qrcode: rqrcode })
-                    )
-                    .then(async result => {
-                      console.log("updating item status");
-                      await pg("session")
-                      .where({ rid: JSON.stringify(result[0].rid),
-                        s_status: "itemcheck" })
-                      .update({
-                        s_status: "sessionStart"
-                      })
-                      console.log("updated item status");
-                    })
+                      .then((err, result) =>
+                        pg("accounts")
+                          .innerJoin(
+                            "request",
+                            "accounts.aid",
+                            "=",
+                            "request.aid"
+                          )
+                          .select("rid")
+                          .where({ qrcode: rqrcode })
+                      )
+                      .then(async result => {
+                        console.log("updating item status");
+                        await pg("session")
+                          .where({
+                            rid: JSON.stringify(result[0].rid),
+                            s_status: "itemcheck"
+                          })
+                          .update({
+                            s_status: "sessionStart"
+                          });
+                        console.log("updated item status");
+                      });
+
                     pg("accounts")
                       .where({ qrcode: rqrcode })
                       .select("first_name")
@@ -683,6 +812,17 @@ app.post("/deleterequest", async function(req, res, next) {
   res.send("deleted " + id);
 });
 
+app.post("/deletesession", async function(req, res, next) {
+  console.log("deleting ses");
+  const id = req.query.id;
+  pg.schema.then((err, result) =>
+    pg("session")
+      .where({ sid: id })
+      .del()
+  );
+  res.send("deleted " + id);
+});
+
 app.post("/deleteitem", async function(req, res, next) {
   console.log("deleting item");
   const id = req.query.id;
@@ -695,11 +835,11 @@ app.post("/deleteitem", async function(req, res, next) {
 });
 
 app.post("/sessionStart", async function(req, res, next) {
-  var rsid = req.query.sid;
+  var rsid = req.body.sid;
   pg("session")
     .where({ sid: rsid })
     .then(async function(result) {
-      if (result[0].s_status == "sessionStart") {
+      if (result[0].s_status == "go to kiosk") {
         console.log(result[0].s_status);
         pg("session")
           .where({ sid: rsid })
@@ -708,10 +848,57 @@ app.post("/sessionStart", async function(req, res, next) {
           });
       } else {
         console.log(result[0].s_status);
-        res.send({ res: "false" });
+        res.send('false');
       }
     });
   //TBCC
+});
+app.get("/view", function(req, res, next) {
+  pg.schema
+    .then((err, result) => pg.select().table("items"))
+    .then(result => {
+      console.log(result);
+      res.send(result);
+    });
+});
+
+app.post("/defualtaccount", async function(req, res, next) {
+  var id = req.query.id;
+  pg("accounts")
+    .where({ it_chula: id })
+    .then(async function(result) {
+      if (result[0]) {
+        await pg("accounts").insert({
+          aid: 0,
+          tel_no: "0",
+          password: "password",
+          first_name: "defualt",
+          last_name: "defualt",
+          email: "defualt",
+          qrcode: "defualt",
+          it_chula: "0"
+        });
+      }
+    });
+  res.send(200);
+});
+
+app.post("/defualtitem", async function(req, res, next) {
+  var raid = req.query.aid;
+  pg("accounts")
+    .where({ aid: raid })
+    .then(async function(result) {
+      if (result[0]) {
+        await pg("items").insert({
+          iid: 0,
+          item_name: 'defualt',
+          item_type: 'defualt',
+          item_qrcode: 'defualt',
+          belonged_aid: raid
+        });
+      }
+    });
+    return res.send(200);
 });
 
 app.listen(process.env.PORT || 3000, () => {
