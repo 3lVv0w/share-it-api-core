@@ -422,7 +422,7 @@ app.post('/sessionStart', async function (req,res,next){
 app.post('/iotcheckitemqr',function(req,res,next){
   var riqrcode = req.body.stringItemQR;
   pg('items')
-  .where({item_qrcode:riqrcode}).select('iid','item_qrcode','aid')
+  .where({item_qrcode:riqrcode}).select('iid','item_qrcode','belonged_aid')
   .then(async function(result){
     if(!result || !result[0]){
       console.log('fake qr');
