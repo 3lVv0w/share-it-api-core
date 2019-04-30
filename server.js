@@ -787,7 +787,7 @@ app.get('/view', function (req, res, next) {
 app.post("/defualtaccount", async function(req, res, next) {
   var id = req.query.id;
   pg("accounts")
-  .where({ it_chula: rit_chula })
+  .where({ it_chula: id })
   .then(async function(result) {
     if (!result || !result[0]) {
       await pg("accounts").insert({
