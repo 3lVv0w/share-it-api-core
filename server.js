@@ -35,7 +35,7 @@ app.use(bodyParser.json(), bodyParser.urlencoded({ extended: true }));
 
 
 
- app.use("/", serveStatic(join(__dirname, "/dist")));
+// app.use("/", serveStatic(join(__dirname, "/dist")));
 
 app.post("/insertRegChula", async function(req, res, next) {
   console.log("inserting user");
