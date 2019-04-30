@@ -336,25 +336,26 @@ app.post("/checkAccept", async function(req, res, next) {
         console.log("false");
       } else {
         console.log("true");
-        // await pg("request")
-        // .where({ aid: raid })
-        // .update("l_status", "true");
-        var temp_rid = pg("request")
+
+          pg("request")
           .where({ aid: raid, l_status: "true" })
-          .select("rid");
-        console.log(temp_rid);
-        await pg
-          .table("accounts")
-          .innerJoin("session", "accounts.aid", "=", "session.aid")
-          .where({ s_status: "go to kiosk", rid: temp_rid[0].rid })
-          .then(result => {
-            if (!result || !result[0]) {
-              res.send("false");
-              console.log("false");
-            } else {
-              console.log(result);
-              res.send(result);
-            }
+          .select("rid")
+          .then(async (result) =>{
+            console.log(temp_rid);
+            await pg
+              .table("accounts")
+              .innerJoin("session", "accounts.aid", "=", "session.aid")
+              .where({ s_status: "go to kiosk", rid: result[0].rid})
+              .then(result => {
+                if (!result || !result[0]) {
+                  res.send("false");
+                  console.log("false");
+                } else {
+                  console.log(result);
+                  res.send(result);
+                }
+          })
+      
           });
       }
     });
