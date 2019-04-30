@@ -362,7 +362,7 @@ app.post('/feedback', async function (req, res, next) {
 
 //=========>    KIOSK
 //session by charlie
-app.post('/iotchecklenderqr',function (req, res, next) {
+app.put('/iotchecklenderqr',function (req, res, next) {
   var rqrcode= req.body.stringLenderQR;
   console.log(rqrcode);
 
@@ -420,7 +420,7 @@ app.post('/sessionStart', async function (req,res,next){
   //TBCC
 });
 
-app.post('/iotcheckitemqr',function(req,res,next){
+app.put('/iotcheckitemqr',function(req,res,next){
   var riqrcode = req.body.stringItemQR;
   pg('items')
   .where({item_qrcode:riqrcode}).select('iid','item_qrcode','belonged_aid')
@@ -443,7 +443,7 @@ app.post('/iotcheckitemqr',function(req,res,next){
   })
 });
 
-app.post('/iotcheckborrowerqr',function (req, res, next) {
+app.put('/iotcheckborrowerqr',function (req, res, next) {
   var rqrcode = req.body.stringBorrowerQR;
   console.log(rqrcode);
 
