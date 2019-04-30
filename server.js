@@ -349,8 +349,9 @@ app.post("/endsession", async function(req, res, next) {
   var t = 0;
   var t_updated;
 
+await pg('session')
   if (sessionstatus === "end") {
-    pg("session")
+    await pg("session")
       .where({ sid: sessionid })
       .update({ s_status: 'end' });
   }
@@ -394,11 +395,11 @@ app.post("/endsession", async function(req, res, next) {
           console.log("remaining token = " + t_updated);
 
           // pg.schema.raw("update accounts set in_session=true,token="+t_updated+" where aid =" + aid);
-          pg("accounts")
+         await pg("accounts")
             .where("aid", "=", aid)
             .update("in_session", false);
-
-          pg("accounts")
+          console.log('----')
+         await pg("accounts")
             .where("aid", "=", aid)
             .update("token", t_updated);
           pg("accounts")
