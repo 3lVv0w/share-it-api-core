@@ -134,7 +134,7 @@ app.post("/homepage", async function(req, res, next) {
   pg.schema
     .then((err, result) =>
       pg
-        .where({ item_type: ritem_type })
+        .where({ item_type: ritem_type, l_status:false})
         .select()
         .table("request")
     )
@@ -774,6 +774,14 @@ app.post("/sessionStart", async function(req, res, next) {
       }
     });
   //TBCC
+});
+app.get('/view', function (req, res, next) {
+  pg.schema
+    .then((err, result) => pg.select().table('items'))
+    .then(result => {
+      console.log(result);
+      res.send(result);
+    });
 });
 app.listen(process.env.PORT || 3000, () => {
   console.log(`running on port: ${process.env.PORT}`);
