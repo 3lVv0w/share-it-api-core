@@ -243,8 +243,8 @@ app.post("/borrowRequest", function(req, res, next) {
 
 //lender accept request
 app.post("/acceptRequest", async function(req, res, next) {
-  var rrid = req.query.rid + "";
-  var raid = req.query.aid + "";
+  var rrid = req.query.rid ;
+  var raid = req.query.aid ;
   await pg("accounts")
     .where({ aid: raid })
     .then(async function(result) {
