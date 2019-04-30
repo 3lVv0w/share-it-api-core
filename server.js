@@ -237,7 +237,7 @@ app.post("/borrowRequest", function(req, res, next) {
               aid: raid,
               image : rimage
             });
-            res.send("added item into list");
+            res.send("ok");
           });
       } else {
         console.log(result);
