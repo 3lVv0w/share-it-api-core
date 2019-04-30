@@ -344,12 +344,15 @@ app.post("/checkAccept", async function(req, res, next) {
 app.post("/endsession", async function(req, res, next) {
   var sessionstatus = req.body.status + "";
   var sessionid = req.body.sid + "";
+  var raid = req.body.aid+"";
   var t_used = null;
   var aid = null;
   var t = 0;
   var t_updated;
 
-await pg('session')
+await pg('session').select('aid').where({aid:raid})
+.then(async result =>{
+  if(!(!result || !result[0]) ){
   if (sessionstatus === "end") {
     await pg("session")
       .where({ sid: sessionid })
@@ -406,40 +409,85 @@ await pg('session')
             .where({ aid: aid })
             .then(async result => {
               console.log(result);
+              console.log('lender end')
+              res.send('true');
             });
         });
     });
-});
+  }
+  else {
+    pg('session').select('s_status').where({sid:sessionid})
+    .then(async result =>{
+      if(result[0].s_status=='end'){
+        // console.log(result);
+        pg.schema
+        .then((err, result) =>
+       
+       pg (pg('request').select("rid", "aid", "token_used")
+          .as("t1") )
+          .innerJoin(
+            pg("session")
+              .select("sid", "rid")
+              .where({ sid: sessionid })
+              .as("t2"),
+            "t1.rid",
+            "=",
+            "t2.rid"
+          )
+          .select("token_used", "aid")
+      )
+      .then(async result => {
+      console.log(result);
+      console.log(result[0].aid);
+      aid = result[0].aid
+       pg("accounts")
+            .where({aid: result[0].aid})
+            .select("token")
 
-// pg.schema
-//   .then((err, result) =>
-//  pg("request")
-//   pg(pg('request').select("rid", "aid", "token_used")
-//     .as("t1") )
-//     .innerJoin(
-//       pg("session")
-//         .select("sid", "rid")
-//         .where({ sid: sessionid })
-//         .as("t2"),
-//       "t1.rid",
-//       "=",
-//       "t2.rid"
-//     )
-//     .select("token_used", "aid")
-// )
-// .then(async result => {
-// console.log(result);
-//console.log(result[0].aid);
-//  pg("account")
-//       .where({aid: result[0].aid})
-//       .select("token");
-//     var t_updated = t - result[0].token_used;
-//     await pg("accounts")
-//       .where({ aid: result[0].aid })
-//       .update({ token: t_updated, in_session:"false"});
-// });
-//});
+            .then(async result => {
+              //console.log(result)
+              t = result[0].token;
+              console.log(t);
+              t_updated = t - t_used;
+              console.log("t_updated = " + t_updated);
+              console.log("aid = " + aid);
+              console.log("remaining token = " + t_updated);
+    
+              // pg.schema.raw("update accounts set in_session=true,token="+t_updated+" where aid =" + aid);
+             await pg("accounts")
+                .where("aid", "=", aid)
+                .update("in_session", false);
+              console.log('----')
+             await pg("accounts")
+                .where("aid", "=", aid)
+                .update("token", t_updated);
+              pg("accounts")
+                .where({ aid: aid })
+                .then(async result => {
+                  console.log(result);
+                  console.log('borrowerend')
+                  res.send('true');
+                })
 
+              })
+
+            })
+      }
+      else{
+        console.log('false');
+        res.send('false');
+        
+      }
+    })
+  }
+})
+})
+      
+          // var t_updated = t - result[0].token_used;
+          // await pg("accounts")
+          //   .where({ aid: result[0].aid })
+          //   .update({ token: t_updated, in_session:"false"});
+      
 //feedback
 
 app.post("/feedback", async function(req, res, next) {
