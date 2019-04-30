@@ -229,7 +229,7 @@ await pg('accounts')
   .where({aid : pg('request').select('aid').where({rid : rrid})})
   .update('in_session','true');
 await pg('session')
-  .insert({start_time : pg.fn.now(), end_time : pg.fn.now(), aid :raid, rid: rrid, s_status : 'go to kiosk', iid : 0 })
+  .insert({start_time : pg.fn.now(), end_time : pg.fn.now(), aid :raid, rid: rrid, s_status : 'go_to_kiosk', iid : 0 })
   pg(pg('request').select('rid','aid').as('t1'))
   .innerJoin(pg('session').select('sid','rid').as('t2'),'t1.rid','=','t2.rid')
   .innerJoin(pg('accounts').where({aid : pg('request').distinct('aid').where({rid : rrid})}).as('t3'),'t1.aid','=','t3.aid')
@@ -377,7 +377,7 @@ app.post('/iotchecklenderqr',function (req, res, next) {
     pg('accounts')
    .where({qrcode : rqrcode}).select('aid' ) 
    .then(result =>{
-    pg('session').where({aid: JSON.stringify(result[0].aid),s_status:'go to kiosk'}).then(async function(result){
+    pg('session').where({aid: JSON.stringify(result[0].aid),s_status:'go_to_kiosk'}).then(async function(result){
       if(!result||!result[0]){
         console.log('user not in sesion');
         res.send({res: 'false'});
@@ -385,6 +385,7 @@ app.post('/iotchecklenderqr',function (req, res, next) {
       else{
         pg('session').where({rid: JSON.stringify(result[0].aid)})
           .update({s_status: 'lendercheck'});
+          console.log('update status');
         pg('accounts').where({aid: JSON.stringify(result[0].aid)}).select('first_name')
         .then(result=>{
           console.log('done');
@@ -435,6 +436,7 @@ app.post('/iotcheckitemqr',function(req,res,next){
           .update({s_status: 'itemcheck',iid : JSON.stringify(result[0].iid)});
       pg('items').where({item_qrcode:riqrcode}).select('item_name')
       .then(result=>{
+        console.log('update item');
         res.send(JSON.stringify(result));
         })
     }
