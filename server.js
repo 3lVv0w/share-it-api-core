@@ -3,20 +3,20 @@
 require('dotenv').config();
 const morgan = require("morgan");
 const express = require("express");
-const pg = require('knex')({
-  client: 'postgresql',
-  connection: process.env.DATABASE_URL,
-  useNullAsDefault: true
-});
-// var pg = require('knex')({
-//   client: 'pg',
-//   connection: {
-//     database: 'share_it',
-//     user: 'postgres',
-//     password: 'password',
-//   },
-//   searchPath: ['knex', 'public'],
+// const pg = require('knex')({
+//   client: 'postgresql',
+//   connection: process.env.DATABASE_URL,
+//   useNullAsDefault: true
 // });
+var pg = require('knex')({
+  client: 'pg',
+  connection: {
+    database: 'share_it',
+    user: 'postgres',
+    password: 'password',
+  },
+  searchPath: ['knex', 'public'],
+});
 
 
 const bodyParser = require("body-parser");
@@ -209,6 +209,7 @@ app.post('/borrowRequest',function(req,res,next){
   }
   //var image;
   //var id;
+}) 
 });
 
 //lender accept request
@@ -359,7 +360,6 @@ app.post('/feedback', async function (req, res, next) {
   
 });
 
-
 //=========>    KIOSK
 //session by charlie
 app.post('/iotchecklenderqr',function (req, res, next) {
@@ -377,7 +377,7 @@ app.post('/iotchecklenderqr',function (req, res, next) {
     pg('accounts')
    .where({qrcode : rqrcode}).select('aid' ) 
    .then(result =>{
-    pg('session').where({aid: JSON.stringify(result[0].aid),s_status: 'go to kiosk'}).then(async function(result){
+    pg('session').where({aid: JSON.stringify(result[0].aid),s_status:'go to kiosk'}).then(async function(result){
       if(!result||!result[0]){
         console.log('user not in sesion');
         res.send({res: 'false'});
@@ -487,9 +487,7 @@ app.post('/iotcheckborrowerqr',function (req, res, next) {
   
     } 
   })
-});  
-
-
+});
 
 //session by charlie
 app.post('/registeritem', async function (req, res, next) {
@@ -552,7 +550,7 @@ app.post('/deleteitem', async function (req, res, next) {
   .then((err, result) => pg('items').where({iid : id}).del())
   res.send('deleted '+id);
 });
+
 app.listen(process.env.PORT || 3000, () => {
   console.log(`running on port: ${process.env.PORT}`);
 });
-})
