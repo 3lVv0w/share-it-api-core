@@ -17,8 +17,6 @@ const pg = require("knex")({
 //     password: 'password',
 //   },
 //   searchPath: ['knex', 'public'],
-
-
 // });
 
 const bodyParser = require("body-parser");
@@ -61,7 +59,7 @@ app.post("/signup", async function(req, res, next) {
   var remail = req.body.email + "";
   var rit_chula = req.body.it_chula + "";
   var rqrcode = rit_chula + rfirstname;
-  var rimage = "0";
+  var rimage =  req.body.image + "";
   //var checked_it_chula;
   pg("temp_it_chula")
     .where({
@@ -207,6 +205,7 @@ app.post('/borrowRequest',function(req,res,next){
   var rborrow_time = req.body.borrow_time+'';
   var rreturn_time = req.body.return_time +'';
   var raid = req.body.aid+'';
+  var rimage =  req.body.examplePicUrl + "";
   pg('request')
   .where({aid: raid,l_status : 'false'})
   .then(async function(result){
@@ -224,6 +223,7 @@ app.post('/borrowRequest',function(req,res,next){
       borrow_time:pg.fn.now(),
       return_time:pg.fn.now(),
       aid : raid,
+      image: rimage
       //image : rimage; add column
     })
     res.send('added item into list');

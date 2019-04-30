@@ -17,7 +17,7 @@ exports.up = function(knex, Promise) {
       table.dateTime('createdAt').notNull().defaultTo(knex.fn.now());
       table.dateTime('updatedAt').notNull().defaultTo(knex.fn.now());
       table.boolean('in_session').notNull().defaultTo(false);
-      table.string('image').notNull()
+      table.string('image').notNull();
   
       //table.foreign('cuid').references('temp_it_chula.cuid');
     });
