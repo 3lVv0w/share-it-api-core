@@ -9,15 +9,15 @@ const pg = require("knex")({
   connection: process.env.DATABASE_URL,
   useNullAsDefault: true
 });
-// var pg = require("knex")({
-//   client: "pg",
-//   connection: {
-//     database: "share_it",
-//     user: "postgres",
-//     password: "password"
-//   },
-//   searchPath: ["knex", "public"]
-// });
+  // var pg = require("knex")({
+  //   client: "pg",
+  //   connection: {
+  //     database: "share_it",
+  //     user: "postgres",
+  //     password: "password"
+  //   },
+  //   searchPath: ["knex", "public"]
+  // });
 
 const bodyParser = require("body-parser");
 const { join } = require("path");
@@ -329,7 +329,7 @@ app.post("/checkAccept", async function(req, res, next) {
   console.log(raid);
   console.log("refresh");
   await pg("request")
-    .where({ aid: raid, l_status: true })
+    .where({ aid: raid, l_status: 'true' })
     .then(async function(result) {
       if (!result || !result[0]) {
         res.send("false");
@@ -338,13 +338,11 @@ app.post("/checkAccept", async function(req, res, next) {
         console.log("true");
 
           pg("request")
-          .where({ aid: raid, l_status: true })
+          .where({ aid: raid, l_status: 'true' })
           .select("rid")
           .then(async (result) =>{
            // console.log(temp_rid);
-            await pg
-              .table("accounts")
-              .innerJoin("session", "accounts.aid", "=", "session.aid")
+            await pg("session")
               .where({ s_status: "go to kiosk", rid: result[0].rid}).select()
               .then(result => {
                 if (!result || !result[0]) {
