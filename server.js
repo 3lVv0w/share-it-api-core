@@ -4,21 +4,10 @@ require("dotenv").config();
 const morgan = require("morgan");
 const express = require("express");
 
-const pg = require("knex")({
-  client: "postgresql",
-  connection: process.env.DATABASE_URL,
-  useNullAsDefault: true
-});
-// var pg = require('knex')({
-//   client: 'pg',
-//   connection: {
-//     database: 'share_it',
-//     user: 'postgres',
-//     password: 'password',
-//   },
-//   searchPath: ['knex', 'public'],
-
-
+// const pg = require("knex")({
+//   client: "postgresql",
+//   connection: process.env.DATABASE_URL,
+//   useNullAsDefault: true
 // });
 var pg = require('knex')({
   client: 'pg',
@@ -28,6 +17,8 @@ var pg = require('knex')({
     password: 'password',
   },
   searchPath: ['knex', 'public'],
+
+
 });
 
 const bodyParser = require("body-parser");
@@ -42,9 +33,9 @@ app.use(require("cors")());
 
 app.use(bodyParser.json(), bodyParser.urlencoded({ extended: true }));
 
-app.use('/', express.static(__dirname + '/public'));
 
-// app.use("/", serveStatic(join(__dirname, "/dist")));
+
+ app.use("/", serveStatic(join(__dirname, "/dist")));
 
 app.post("/insertRegChula", async function(req, res, next) {
   console.log("inserting user");
@@ -179,12 +170,13 @@ app.post("/profile", async function(req, res, next) {
 //edit profile
 app.post('/editProfile', async function (req, res, next) {
   console.log('inserting user');
-  const rid = '' + req.body.id;
+  const rid =  req.body.aid;
   const rfirstname = '' + req.body.firstname;
   const rlastname = '' + req.body.lastname;
   const phoneno = req.body.tel_no
   const email = req.body.email
-  await pg('accounts').update({first_name: rfirstname, last_name: rlastname,tel_no: phoneno,email:email});
+  await pg('accounts').where({aid:rid})
+  .update({first_name: rfirstname, last_name: rlastname,tel_no: phoneno,email:email});
   res.send('Done'); 
 });
 
