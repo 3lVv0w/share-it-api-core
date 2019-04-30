@@ -331,7 +331,7 @@ app.post("/checkAccept", async function(req, res, next) {
   await pg("request")
     .where({ aid: raid, l_status: "true" })
     .then(async function(result) {
-      if (!result || !result[0]) {
+      if (!(!result || !result[0])) {
         res.send("false");
         console.log("false");
       } else {
