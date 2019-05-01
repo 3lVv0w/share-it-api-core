@@ -392,15 +392,15 @@ app.post("/endsession", async function(req, res, next) {
           await pg("session")
             .where({ sid: sessionid })
             .update({ s_status: "end" });
-
+            pg("session")
+            .select("rid")
+            .where({ sid: sessionid }).then(async (result)=>{
           await pg("request")
             .where({
-              rid: pg("session")
-                .select("rid")
-                .where({ sid: sessionid })[0].rid
-            })
+              rid: result[0].rid})
             .update({ l_status: "end" });
-        }
+        })}
+
 
         // query old token
         pg.schema
