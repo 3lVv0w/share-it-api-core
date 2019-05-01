@@ -9,15 +9,15 @@ const pg = require("knex")({
   connection: process.env.DATABASE_URL,
   useNullAsDefault: true
 });
-  // var pg = require("knex")({
-  //   client: "pg",
-  //   connection: {
-  //     database: "share_it",
-  //     user: "postgres",
-  //     password: "password"
-  //   },
-  //   searchPath: ["knex", "public"]
-  // });
+// var pg = require("knex")({
+//   client: "pg",
+//   connection: {
+//     database: "share_it",
+//     user: "postgres",
+//     password: "password"
+//   },
+//   searchPath: ["knex", "public"]
+// });
 
 const bodyParser = require("body-parser");
 const { join } = require("path");
@@ -235,7 +235,7 @@ app.post("/borrowRequest", function(req, res, next) {
               borrow_time: rborrow_time,
               return_time: rreturn_time,
               aid: raid,
-              image : rimage
+              image: rimage
             });
             res.send("ok");
           });
@@ -329,7 +329,7 @@ app.post("/checkAccept", async function(req, res, next) {
   console.log(raid);
   console.log("refresh");
   await pg("request")
-    .where({ aid: raid, l_status: 'true' })
+    .where({ aid: raid, l_status: "true" })
     .then(async function(result) {
       if (!result || !result[0]) {
         res.send("false");
@@ -337,28 +337,33 @@ app.post("/checkAccept", async function(req, res, next) {
       } else {
         console.log("true");
 
-          pg("request")
-          .where({ aid: raid, l_status: 'true' })
+        pg("request")
+          .where({ aid: raid, l_status: "true" })
           .select("rid")
-          .then(async (result) =>{
-           var temp = result;
+          .then(async result => {
+            var temp = result;
             await pg("session")
-              .where({ s_status: "go to kiosk", rid: result[0].rid}).select('aid')
+              .where({ s_status: "go to kiosk", rid: result[0].rid })
+              .select("aid")
               .then(result => {
                 if (!result || !result[0]) {
                   res.send("false");
                   console.log("false");
                 } else {
-                  await pg("session")
-                  .where({ s_status: "go to kiosk", rid: temp[0].rid}).select('aid').then(result => {
-                  await pg('accounts').where({aid:result[0].aid}).select()
-                  .then(result => {
-                  console.log(result);
-                  res.send(result);
-                })
-          })
-        }})
-      
+                  pg("session")
+                    .where({ s_status: "go to kiosk", rid: temp[0].rid })
+                    .select("aid")
+                    .then(result => {
+                      pg("accounts")
+                        .where({ aid: result[0].aid })
+                        .select()
+                        .then(result => {
+                          console.log(result);
+                          res.send(result);
+                        });
+                    });
+                }
+              });
           });
       }
     });
@@ -388,9 +393,13 @@ app.post("/endsession", async function(req, res, next) {
             .where({ sid: sessionid })
             .update({ s_status: "end" });
 
-            await pg('request')
-            .where({rid:pg('session').select('rid').where({sid:sessionid})[0].rid})
-            .update({l_status: "end"});
+          await pg("request")
+            .where({
+              rid: pg("session")
+                .select("rid")
+                .where({ sid: sessionid })[0].rid
+            })
+            .update({ l_status: "end" });
         }
 
         // query old token
@@ -865,7 +874,7 @@ app.post("/sessionStart", async function(req, res, next) {
           });
       } else {
         console.log(result[0].s_status);
-        res.send('false');
+        res.send("false");
       }
     });
   //TBCC
@@ -908,14 +917,14 @@ app.post("/defualtitem", async function(req, res, next) {
       if (result[0]) {
         await pg("items").insert({
           iid: 0,
-          item_name: 'defualt',
-          item_type: 'defualt',
-          item_qrcode: 'defualt',
+          item_name: "defualt",
+          item_type: "defualt",
+          item_qrcode: "defualt",
           belonged_aid: raid
         });
       }
     });
-    return res.send(200);
+  return res.send(200);
 });
 
 app.listen(process.env.PORT || 3000, () => {
