@@ -927,6 +927,14 @@ app.post("/defualtitem", async function(req, res, next) {
   return res.send(200);
 });
 
+app.put("/updateaccount", async function(req, res, next) {
+  const status = req.query.id;
+  await pg("accounts")
+    .where({ aid: id })
+    .update({
+      in_session: false
+    });
+});
 app.listen(process.env.PORT || 3000, () => {
   console.log(`running on port: ${process.env.PORT}`);
 });
