@@ -930,7 +930,7 @@ app.post("/defualtitem", async function(req, res, next) {
 app.put("/updateaccount", async function(req, res, next) {
   const status = req.query.id;
   await pg("accounts")
-    .where({ aid: id })
+    .where({ aid: status })
     .update({
       in_session: false
     });
