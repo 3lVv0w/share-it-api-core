@@ -341,18 +341,23 @@ app.post("/checkAccept", async function(req, res, next) {
           .where({ aid: raid, l_status: 'true' })
           .select("rid")
           .then(async (result) =>{
-           // console.log(temp_rid);
+           var temp = result;
             await pg("session")
-              .where({ s_status: "go to kiosk", rid: result[0].rid}).select()
+              .where({ s_status: "go to kiosk", rid: result[0].rid}).select('aid')
               .then(result => {
                 if (!result || !result[0]) {
                   res.send("false");
                   console.log("false");
                 } else {
+                  await pg("session")
+                  .where({ s_status: "go to kiosk", rid: temp[0].rid}).select('aid').then(result => {
+                  await pg('accounts').where({aid:result[0].aid}).select()
+                  .then(result => {
                   console.log(result);
                   res.send(result);
-                }
+                })
           })
+        }})
       
           });
       }
@@ -836,7 +841,16 @@ app.post("/deleteitem", async function(req, res, next) {
   );
   res.send("deleted " + id);
 });
-
+app.post("/deleteaccount", async function(req, res, next) {
+  console.log("deleting account");
+  const id = req.query.id;
+  pg.schema.then((err, result) =>
+    pg("accounts")
+      .where({ aid: id })
+      .del()
+  );
+  res.send("deleted " + id);
+});
 app.post("/sessionStart", async function(req, res, next) {
   var rsid = req.body.sid;
   pg("session")
